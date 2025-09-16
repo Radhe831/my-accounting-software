@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create/Edit Delivery Challan</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .form-row > div { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        #items-table input { width: 90%; padding: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1 id="page-title">New Delivery Challan</h1>
+        <a href="delivery_challan.html" target="content-frame" class="btn btn-secondary">Back to List</a>
+    </div>
+    <hr>
+    <div>
+        <input type="hidden" id="challanId">
+        <div class="form-row">
+            <div><label><b>Firm:</b></label><select id="company-switcher" disabled></select></div>
+            <div><label for="challan-date">Date:</label><input type="date" id="challan-date" style="width:100%; padding: 8px;"></div>
+        </div>
+        <div class="form-row">
+             <div><label for="party-selector">Customer:</label><select id="party-selector" style="width:100%; padding: 8px;"></select></div>
+        </div>
+        <table id="items-table">
+            <thead><tr><th>Item</th><th style="width: 15%;">Qty</th><th></th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <button id="add-item-btn" style="margin-top: 10px;">+ Add Item</button>
+        <button id="save-challan-btn" class="btn btn-primary" style="margin-top: 20px;">Save Delivery Challan</button>
+    </div>
+</div>
+
+<script>
+    let activeCompanyId = null;
+    let allItems = [], allParties = [], originalChallanItems = [];
+    const partySelector = document.getElementById('party-selector');
+    const challanDateEl = document.getElementById('challan-date');
+    const itemsTableBody = document.querySelector('#items-table tbody');
+    const pageTitle = document.getElementById('page-title');
+    const challanIdField = document.getElementById('challanId');
+    const saveButton = document.getElementById('save-challan-btn');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        activeCompanyId = localStorage.getItem('activeCompanyId');
+        if (!activeCompanyId) return;
+        document.getElementById('company-switcher').innerHTML = `<option>${localStorage.getItem('activeCompanyName') || 'Selected Firm'}</option>`;
+        
+        allParties = JSON.parse(localStorage.getItem('parties')) || [];
+        allItems = JSON.parse(localStorage.getItem('items')) || [];
+        populateCustomers();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+
+        if (editId) {
+            loadChallanForEditing(editId);
+            pageTitle.textContent = 'Edit Delivery Challan';
+            saveButton.textContent = 'Update Challan';
+        } else {
+            challanDateEl.valueAsDate = new Date();
+            addNewItemRow();
+        }
+
+        document.getElementById('add-item-btn').addEventListener('click', () => addNewItemRow());
+        saveButton.addEventListener('click', saveChallan);
+    });
+    
+    function loadChallanForEditing(id) {
+        const allChallans = JSON.parse(localStorage.getItem('deliveryChallans')) || [];
+        const challan = allChallans.find(c => c.id === id);
+        if (challan) {
+            challanIdField.value = challan.id;
+            challanDateEl.value = challan.date;
+            partySelector.value = challan.partyId;
+            originalChallanItems = JSON.parse(JSON.stringify(challan.items)); // Deep copy
+
+            itemsTableBody.innerHTML = '';
+            challan.items.forEach(item => addNewItemRow(item));
+        }
+    }
+    
+    function saveChallan() {
+        let allChallans = JSON.parse(localStorage.getItem('deliveryChallans')) || [];
+        let allItems = JSON.parse(localStorage.getItem('items')) || [];
+        const currentId = challanIdField.value;
+
+        // Step 1: Revert old stock changes if editing
+        if (currentId) {
+            originalChallanItems.forEach(oldItem => {
+                const itemIndex = allItems.findIndex(i => i.id == oldItem.itemId);
+                if (itemIndex > -1) allItems[itemIndex].stock += oldItem.qty;
+            });
+        }
+        
+        // Step 2: Get new items and validate stock
+        const newChallanItems = [];
+        let stockError = false;
+        itemsTableBody.querySelectorAll('tr').forEach(row => {
+            const itemId = row.querySelector('.item-selector').value;
+            const qty = parseInt(row.querySelector('.item-qty').value);
+            if (itemId && qty > 0) {
+                const itemData = allItems.find(i => i.id == itemId);
+                if (qty > itemData.stock) {
+                    alert(`Not enough stock for '${itemData.name}'. Available: ${itemData.stock}, Required: ${qty}.`);
+                    stockError = true;
+                }
+                newChallanItems.push({ itemId: itemId, itemName: itemData.name, qty: qty });
+            }
+        });
+
+        if (stockError) {
+            // Revert stock back to original state before the function was called
+            if (currentId) {
+                 originalChallanItems.forEach(oldItem => {
+                    const itemIndex = allItems.findIndex(i => i.id == oldItem.itemId);
+                    if (itemIndex > -1) allItems[itemIndex].stock -= oldItem.qty;
+                });
+            }
+            return;
+        }
+        
+        // Step 3: Apply new stock changes
+        newChallanItems.forEach(newItem => {
+            const itemIndex = allItems.findIndex(i => i.id == newItem.itemId);
+            if (itemIndex > -1) allItems[itemIndex].stock -= newItem.qty;
+        });
+        localStorage.setItem('items', JSON.stringify(allItems));
+        
+        // Step 4: Save challan data
+        const challanData = {
+            date: challanDateEl.value,
+            companyId: activeCompanyId,
+            partyId: partySelector.value,
+            items: newChallanItems
+        };
+        
+        if (currentId) { // Update
+            const index = allChallans.findIndex(c => c.id === currentId);
+            allChallans[index] = { ...allChallans[index], ...challanData };
+        } else { // Create
+            challanData.id = "DC-" + Date.now();
+            allChallans.push(challanData);
+        }
+        
+        localStorage.setItem('deliveryChallans', JSON.stringify(allChallans));
+        alert('Challan saved successfully!');
+        window.parent.document.getElementById('content-frame').src = 'delivery_challan.html';
+    }
+
+    // Helper functions are mostly same
+    function populateCustomers(){const companyCustomers=allParties.filter(p=>p.companyId==activeCompanyId&&p.type==="Customer");partySelector.innerHTML='<option value="">-- Select Customer --</option>',companyCustomers.forEach(c=>{partySelector.innerHTML+=`<option value="${c.id}">${c.name}</option>`})}
+    function addNewItemRow(item=null){const row=document.createElement("tr"),companyItems=allItems.filter(e=>e.companyId==activeCompanyId);let optionsHtml='<option value="">-- Select Item --</option>';companyItems.forEach(e=>{optionsHtml+=`<option value="${e.id}">${e.name} (Stock: ${e.stock})</option>`}),row.innerHTML=`<td><select class="item-selector">${optionsHtml}</select></td><td><input type="number" class="item-qty" value="1" min="1"></td><td><button onclick="this.parentElement.parentElement.remove()">X</button></td>`,itemsTableBody.appendChild(row);if(item){row.querySelector(".item-selector").value=item.itemId,row.querySelector(".item-qty").value=item.qty}}
+</script>
+</body>
+</html>

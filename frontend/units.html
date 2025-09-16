@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add New Unit</title>
+  <style>
+    body {background: #f8f9fa; font-family: system-ui, sans-serif; margin: 0;}
+    .unit-container {
+      width: 650px; margin: 48px auto; background: white;
+      border-radius: 14px; box-shadow: 0 2px 24px #0002; padding: 36px 44px 44px 44px;
+    }
+    .unit-title {
+      font-size: 1.3rem; letter-spacing: 0.14em; color: #20477a;
+      font-weight: 700; margin-bottom: 26px;
+    }
+    .unit-form {
+      display: flex; gap: 32px;
+      margin-bottom: 30px;
+    }
+    .unit-form-field {
+      flex: 1 1 50%; display: flex; flex-direction: column; margin-bottom: 20px;
+    }
+    .unit-form-field label {
+      font-size: 1.03rem; color: #75849f; font-weight: 700; letter-spacing: .02em;
+      margin-bottom: 2px;
+    }
+    .unit-form-field input {
+      border: none; border-bottom: 2px solid #218ed0; font-size: 1.13rem;
+      padding: 10px 2px 8px 3px; background: transparent; color: #30445b;
+      transition: border-color 0.2s;
+    }
+    .unit-form-field input:focus {
+      outline: none;
+      border-bottom-color: #005fb2;
+    }
+    .unit-action-row {
+      display: flex; justify-content: flex-end; gap: 15px;
+    }
+    .unit-btn {
+      padding: 10px 32px; font-weight: 700; border-radius: 5px; border: none;
+      background: #2091cb; color: white; font-size: 1rem; cursor: pointer;
+      transition: background 0.18s;
+    }
+    .unit-btn:hover {background: #116696;}
+  </style>
+</head>
+<body>
+  <div class="unit-container">
+    <div class="unit-title">NEW UNIT</div>
+    <form id="unitForm" autocomplete="off">
+      <div class="unit-form">
+        <div class="unit-form-field">
+          <label for="unitName">UNIT NAME</label>
+          <input type="text" id="unitName" name="unitName" required placeholder="Enter Unit Name" />
+        </div>
+        <div class="unit-form-field">
+          <label for="unitShort">SHORT NAME</label>
+          <input type="text" id="unitShort" name="unitShort" required placeholder="SHORTNAME" />
+        </div>
+      </div>
+      <div class="unit-action-row">
+        <button class="unit-btn" type="submit">SAVE</button>
+        <button class="unit-btn" type="button" onclick="saveNewUnit()">SAVE NEW</button>
+      </div>
+    </form>
+  </div>
+<script>
+  document.getElementById('unitForm').onsubmit = function(e){
+    e.preventDefault();
+    alert('Unit Saved!\n' +
+      'Name: ' + document.getElementById('unitName').value +
+      '\nShort: ' + document.getElementById('unitShort').value +
+      '\n(Demo)'
+    );
+    // TODO: Here integrate with backend, then reset if desired
+  };
+  function saveNewUnit() {
+    // This could save, then clear for new entry
+    document.getElementById('unitForm').onsubmit();
+    document.getElementById('unitName').value = '';
+    document.getElementById('unitShort').value = '';
+    document.getElementById('unitName').focus();
+  }
+</script>
+</body>
+</html>

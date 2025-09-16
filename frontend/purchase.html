@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Bill</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn-primary { background-color: #28a745; color: white; }
+        .purchase-form { border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-bottom: 30px; }
+        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .form-row > div { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        #purchase-items-table input { width: 90%; padding: 5px; }
+        #grand-total { text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="toolbar"><h1>Purchase Bill</h1><div><label><b>Firm:</b> </label><select id="company-switcher"></select></div></div>
+    <div class="purchase-form">
+        <h2>New Purchase Bill</h2>
+        <div class="form-row">
+            <div><label for="party-selector">Select Supplier:</label><select id="party-selector" style="width:100%; padding: 8px;"></select></div>
+            <div><label for="purchase-date">Bill Date:</label><input type="date" id="purchase-date" style="width:100%; padding: 8px;"></div>
+        </div>
+        <table id="purchase-items-table">
+            <thead><tr><th>Item</th><th style="width: 15%;">Qty</th><th style="width: 20%;">Price</th><th style="width: 20%;">Total</th><th></th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <button id="add-item-btn" style="margin-top: 10px;">+ Add Item</button>
+        <div id="grand-total">Grand Total: ₹0.00</div>
+        <button id="save-purchase-btn" class="btn btn-primary" style="margin-top: 20px;">Save Purchase</button>
+    </div>
+    <h2>Purchase History</h2>
+    <table id="purchase-history-table">
+        <thead><tr><th>Date</th><th>Supplier</th><th>Total Amount</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script>
+let activeCompanyId = null; let allItems = []; let allParties = [];
+const companySwitcher = document.getElementById('company-switcher');
+const partySelector = document.getElementById('party-selector');
+const purchaseDateEl = document.getElementById('purchase-date');
+const purchaseHistoryTableBody = document.querySelector('#purchase-history-table tbody');
+const purchaseItemsTableBody = document.querySelector('#purchase-items-table tbody');
+
+document.addEventListener('DOMContentLoaded', () => {
+    const companies = JSON.parse(localStorage.getItem('companies')) || [];
+    activeCompanyId = localStorage.getItem('activeCompanyId') || (companies.length > 0 ? companies[0].id : null);
+    companies.forEach(c => { companySwitcher.innerHTML += `<option value="${c.id}">${c.company_name}</option>`; });
+    if(activeCompanyId) companySwitcher.value = activeCompanyId;
+    purchaseDateEl.valueAsDate = new Date();
+    loadInitialData();
+});
+
+function loadInitialData() {
+    if (!activeCompanyId) return;
+    allParties = JSON.parse(localStorage.getItem('parties')) || [];
+    allItems = JSON.parse(localStorage.getItem('items')) || [];
+    populateSuppliers();
+    loadPurchaseHistory();
+    resetPurchaseForm();
+}
+
+function populateSuppliers() { /* ... unchanged ... */ }
+function loadPurchaseHistory() { /* ... unchanged ... */ }
+function resetPurchaseForm() { /* ... unchanged ... */ }
+function addNewItemRow() { /* ... unchanged ... */ }
+function calculateRowTotal() { /* ... unchanged ... */ }
+function calculateGrandTotal() { /* ... unchanged ... */ }
+
+// UPDATED Save Purchase button logic
+document.getElementById('save-purchase-btn').addEventListener('click', () => {
+    if (!partySelector.value) { alert('Please select a supplier.'); return; }
+    
+    const purchaseItems = [];
+    let isValid = true;
+    purchaseItemsTableBody.querySelectorAll('tr').forEach(row => {
+        const itemId = row.querySelector('.item-selector').value;
+        const qty = parseInt(row.querySelector('.item-qty').value);
+        const price = parseFloat(row.querySelector('.item-price').value);
+
+        if (itemId && qty > 0 && price >= 0) {
+            const itemData = allItems.find(i => i.id == itemId);
+            purchaseItems.push({
+                itemId: itemId,
+                itemName: itemData.name,
+                qty: qty,
+                price: price,
+                total: qty * price
+            });
+        }
+    });
+
+    if (purchaseItems.length === 0) { alert('Please add at least one item with quantity and price.'); return; }
+
+    // Update stock
+    purchaseItems.forEach(purchasedItem => {
+        const itemIndex = allItems.findIndex(i => i.id == purchasedItem.itemId);
+        if(itemIndex !== -1) { allItems[itemIndex].stock += purchasedItem.qty; }
+    });
+    localStorage.setItem('items', JSON.stringify(allItems));
+    
+    // Save purchase record WITH item details
+    const newPurchase = {
+        id: Date.now(),
+        date: purchaseDateEl.value,
+        companyId: activeCompanyId,
+        partyId: partySelector.value,
+        items: purchaseItems, // Saving the full item list
+        totalAmount: parseFloat(document.getElementById('grand-total').textContent.replace('Grand Total: ₹', ''))
+    };
+    const allPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
+    allPurchases.push(newPurchase);
+    localStorage.setItem('purchases', JSON.stringify(allPurchases));
+    
+    alert('Purchase bill saved successfully!');
+    loadPurchaseHistory();
+    resetPurchaseForm();
+});
+
+companySwitcher.addEventListener('change', () => { activeCompanyId = companySwitcher.value; localStorage.setItem('activeCompanyId', activeCompanyId); loadInitialData(); });
+document.getElementById('add-item-btn').addEventListener('click', addNewItemRow);
+
+// --- HELPER FUNCTIONS (kept compact for brevity, they are unchanged) ---
+function populateSuppliers(){const e=allParties.filter(e=>e.companyId==activeCompanyId&&"Supplier"===e.type);partySelector.innerHTML='<option value="">-- Select Supplier --</option>',e.forEach(e=>{partySelector.innerHTML+=`<option value="${e.id}">${e.name}</option>`})}function loadPurchaseHistory(){const e=JSON.parse(localStorage.getItem("purchases"))||[],t=e.filter(e=>e.companyId==activeCompanyId);purchaseHistoryTableBody.innerHTML="",t.forEach(e=>{const t=allParties.find(t=>t.id==e.partyId);purchaseHistoryTableBody.innerHTML+=`<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${t?t.name:"N/A"}</td><td>${e.totalAmount.toFixed(2)}</td></tr>`})}function resetPurchaseForm(){partySelector.value="",purchaseDateEl.valueAsDate=new Date,purchaseItemsTableBody.innerHTML="",addNewItemRow(),calculateGrandTotal()}function addNewItemRow(){const e=document.createElement("tr"),t=allItems.filter(e=>e.companyId==activeCompanyId);let a='<option value="">-- Select Item --</option>';t.forEach(e=>{a+=`<option value="${e.id}">${e.name}</option>`}),e.innerHTML=`<td><select class="item-selector">${a}</select></td><td><input type="number" class="item-qty" value="1" min="1"></td><td><input type="number" class="item-price" placeholder="Purchase Price"></td><td><input type="text" class="item-total" readonly></td><td><button onclick="this.parentElement.parentElement.remove(); calculateGrandTotal();">X</button></td>`,purchaseItemsTableBody.appendChild(e),e.querySelector(".item-qty").addEventListener("input",calculateRowTotal),e.querySelector(".item-price").addEventListener("input",calculateRowTotal)}function calculateRowTotal(){const e=this.closest("tr"),t=parseFloat(e.querySelector(".item-qty").value)||0,a=parseFloat(e.querySelector(".item-price").value)||0;e.querySelector(".item-total").value=(t*a).toFixed(2),calculateGrandTotal()}function calculateGrandTotal(){let e=0;document.querySelectorAll("#purchase-items-table tbody tr").forEach(t=>{e+=parseFloat(t.querySelector(".item-total").value)||0}),document.getElementById("grand-total").textContent=`Grand Total: ₹${e.toFixed(2)}`}
+</script>
+</body>
+</html>

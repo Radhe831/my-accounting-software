@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimates / Quotations</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-header h1 { margin: 0; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-left: 5px; text-decoration: none; display: inline-block; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .transactions-table { width: 100%; border-collapse: collapse; background-color: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .transactions-table th, .transactions-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>Estimates / Quotations</h1>
+        <a href="create_estimate.html" target="content-frame" class="btn btn-primary">+ Add Estimate</a>
+    </div>
+    <table class="transactions-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Estimate No</th>
+                <th>Party Name</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="estimates-list-body"></tbody>
+    </table>
+</div>
+
+<script>
+    let activeCompanyId = null;
+    document.addEventListener('DOMContentLoaded', function () {
+        activeCompanyId = localStorage.getItem('activeCompanyId');
+        if (!activeCompanyId) {
+            document.body.innerHTML = '<h1>Please select a firm first.</h1>';
+            return;
+        }
+        loadEstimates();
+    });
+
+    function loadEstimates() {
+        const allEstimates = JSON.parse(localStorage.getItem('estimates')) || [];
+        const allParties = JSON.parse(localStorage.getItem('parties')) || [];
+        const companyEstimates = allEstimates.filter(e => e.companyId == activeCompanyId);
+        const tableBody = document.getElementById('estimates-list-body');
+        tableBody.innerHTML = '';
+
+        if (companyEstimates.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6">No estimates found.</td></tr>';
+            return;
+        }
+
+        companyEstimates.forEach(est => {
+            const party = allParties.find(p => p.id == est.partyId) || { name: 'N/A' };
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${new Date(est.date).toLocaleDateString()}</td>
+                    <td>${est.id}</td>
+                    <td>${party.name}</td>
+                    <td>₹${est.totalAmount.toFixed(2)}</td>
+                    <td>${est.status || 'Sent'}</td>
+                    <td>
+                        <a href="create_estimate.html?id=${est.id}" class="btn btn-secondary">Edit</a>
+                        <button class="btn btn-danger" onclick="deleteEstimate(${est.id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function deleteEstimate(id) {
+        if (confirm('Are you sure you want to delete this estimate?')) {
+            let allEstimates = JSON.parse(localStorage.getItem('estimates')) || [];
+            allEstimates = allEstimates.filter(e => e.id != id);
+            localStorage.setItem('estimates', JSON.stringify(allEstimates));
+            loadEstimates();
+        }
+    }
+</script>
+</body>
+</html>

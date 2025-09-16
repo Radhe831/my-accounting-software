@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Account Management</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-left: 5px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        #form-container { display: none; margin-top: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        .form-group { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="toolbar"><h1>Bank Accounts</h1><div><label><b>Firm:</b></label><select id="company-switcher"></select></div></div>
+    <button id="show-form-btn" class="btn btn-primary">Add New Bank Account</button>
+    <div id="form-container">
+        <h2 id="form-title">New Bank Account</h2>
+        <form id="bank-form">
+            <input type="hidden" id="account_id">
+            <div class="form-group"><input type="text" id="account_name" placeholder="Account Holder Name" required></div>
+            <div class="form-group"><input type="text" id="bank_name" placeholder="Bank Name (e.g., SBI, HDFC)" required></div>
+            <div class="form-group"><input type="text" id="account_number" placeholder="Account Number" required></div>
+            <div class="form-group"><input type="text" id="ifsc_code" placeholder="IFSC Code"></div>
+            <button type="submit" class="btn btn-primary">Save Account</button>
+            <button type="button" id="cancel-btn" class="btn btn-secondary" style="display:none;">Cancel</button>
+        </form>
+    </div>
+    <table id="accounts-table">
+        <thead><tr><th>Account Name</th><th>Bank</th><th>Account Number</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script>
+    let activeCompanyId = null;
+    const companySwitcher = document.getElementById('company-switcher');
+    const tableBody = document.querySelector('#accounts-table tbody');
+    const formContainer = document.getElementById('form-container');
+    const bankForm = document.getElementById('bank-form');
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialization and loading accounts
+        activeCompanyId = localStorage.getItem('activeCompanyId');
+        const companies = JSON.parse(localStorage.getItem('companies')) || [];
+        companies.forEach(c => companySwitcher.innerHTML += `<option value="${c.id}">${c.company_name}</option>`);
+        if(activeCompanyId) companySwitcher.value = activeCompanyId;
+        loadBankAccounts();
+    });
+
+    function loadBankAccounts() {
+        if (!activeCompanyId) { tableBody.innerHTML = '<tr><td colspan="4">Select a firm first.</td></tr>'; return; }
+        const allAccounts = JSON.parse(localStorage.getItem('bank_accounts')) || [];
+        const companyAccounts = allAccounts.filter(acc => acc.companyId == activeCompanyId);
+        tableBody.innerHTML = '';
+        companyAccounts.forEach(acc => {
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${acc.accountName}</td>
+                    <td>${acc.bankName}</td>
+                    <td>${acc.accountNumber}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="editAccount(${acc.id})">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteAccount(${acc.id})">Delete</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    bankForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const accountId = document.getElementById('account_id').value;
+        const accountData = {
+            accountName: document.getElementById('account_name').value,
+            bankName: document.getElementById('bank_name').value,
+            accountNumber: document.getElementById('account_number').value,
+            ifscCode: document.getElementById('ifsc_code').value,
+            companyId: parseInt(activeCompanyId)
+        };
+        const allAccounts = JSON.parse(localStorage.getItem('bank_accounts')) || [];
+        if (accountId) { // Edit
+            const index = allAccounts.findIndex(a => a.id == accountId);
+            allAccounts[index] = { ...allAccounts[index], ...accountData };
+        } else { // New
+            accountData.id = Date.now();
+            allAccounts.push(accountData);
+        }
+        localStorage.setItem('bank_accounts', JSON.stringify(allAccounts));
+        closeForm();
+        loadBankAccounts();
+    });
+    
+    function editAccount(id) { /* Edit logic here */ }
+    function deleteAccount(id) { /* Delete logic here */ }
+    function closeForm() { /* Close form logic here */ }
+    
+    document.getElementById('show-form-btn').addEventListener('click', () => {
+        closeForm();
+        document.getElementById('form-title').textContent = 'New Bank Account';
+        formContainer.style.display = 'block';
+    });
+    document.getElementById('cancel-btn').addEventListener('click', closeForm);
+    companySwitcher.addEventListener('change', (e) => { activeCompanyId = e.target.value; localStorage.setItem('activeCompanyId', activeCompanyId); loadBankAccounts(); });
+
+    // Helper Functions (same pattern as items/parties)
+    function editAccount(id){const e=JSON.parse(localStorage.getItem("bank_accounts"))||[],t=e.find(e=>e.id===id);t&&(formContainer.style.display="block",document.getElementById("form-title").textContent="Edit Bank Account",document.getElementById("account_id").value=t.id,document.getElementById("account_name").value=t.accountName,document.getElementById("bank_name").value=t.bankName,document.getElementById("account_number").value=t.accountNumber,document.getElementById("ifsc_code").value=t.ifscCode,document.getElementById("cancel-btn").style.display="inline-block")}
+    function deleteAccount(id){if(confirm("Are you sure? This will not delete transactions, only the account.")){let e=JSON.parse(localStorage.getItem("bank_accounts"))||[];e=e.filter(e=>e.id!=id),localStorage.setItem("bank_accounts",JSON.stringify(e)),loadBankAccounts()}}
+    function closeForm(){bankForm.reset(),document.getElementById("account_id").value="",formContainer.style.display="none",document.getElementById("cancel-btn").style.display="none"}
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash & Bank</title>
+    <style>
+        /* CSS is the same as before */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; }
+        .page-container { display: flex; height: 100vh; }
+        .account-list-container { width: 300px; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; background-color: #fff; }
+        .list-header { 
+            padding: 15px; 
+            border-bottom: 1px solid #dee2e6; 
+            font-size: 1.2em; 
+            font-weight: 600; 
+            display: flex; /* Added for alignment */
+            justify-content: space-between; /* Added for alignment */
+            align-items: center; /* Added for alignment */
+        }
+        .btn-manage { font-size: 0.7em; padding: 5px 8px; font-weight: 500; background-color: #6c757d; color: white; border-radius: 4px; text-decoration: none; }
+        /* ... Other styles are the same ... */
+    </style>
+</head>
+<body>
+<div class="page-container">
+    <div class="account-list-container">
+        <!-- HEADER UPDATED WITH THE BUTTON -->
+        <div class="list-header">
+            <span>Accounts</span>
+            <a href="bank_accounts.html" target="content-frame" class="btn-manage">Manage</a>
+        </div>
+        <ul id="account-list" class="account-list"></ul>
+    </div>
+    <!-- ... Rest of the HTML is the same ... -->
+    <div class="details-container">...</div>
+    <!-- ... Modals are the same ... -->
+</div>
+<script>
+    // The entire script is the same as before
+</script>
+</body>
+</html>
+

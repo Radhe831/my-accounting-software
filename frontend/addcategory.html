@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Category</title>
+  <style>
+    body {background: #f8f9fa; font-family: system-ui, sans-serif; margin: 0;}
+    .cat-container {
+      width: 430px; margin: 96px auto; background: white;
+      border-radius: 14px; box-shadow: 0 8px 30px #0002; padding: 44px 46px 38px 46px;
+      position: relative;
+    }
+    .cat-title {
+      font-size: 1.34rem; font-weight: 700; letter-spacing: 1.1px;
+      color: #2d3949; margin-bottom: 24px; text-align: center;
+    }
+    label {
+      font-size: 0.97rem; color: #475770; font-weight: 600;
+      margin-bottom: 8px; display: block;
+    }
+    input[type="text"] {
+      width: 100%; padding: 11px 16px; font-size: 1.08rem;
+      border-radius: 8px; border: 1.3px solid #bfc9de; margin-bottom: 30px;
+      background: #f9fafe; font-weight: 600;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus {border-color: #e9626b; outline: none;}
+    .btn-create {
+      width: 100%; background: #f32c52;
+      color: white; font-weight: 700; font-size: 1.17rem;
+      padding: 14px 0; border-radius: 24px; border: none; cursor: pointer;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+    .btn-create:hover {background: #a71334;}
+    .close-x {
+      position: absolute; top: 18px; right: 26px;
+      background: none; border: none; color: #888; font-size: 1.6rem; cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="cat-container">
+    <button class="close-x" onclick="window.close && window.close();">&times;</button>
+    <div class="cat-title">Add Category</div>
+    <form onsubmit="return addCategory();">
+      <label for="catName">Enter Category Name</label>
+      <input id="catName" type="text" placeholder="e.g., Grocery" required />
+      <button class="btn-create" type="submit">Create</button>
+    </form>
+  </div>
+<script>
+  function addCategory() {
+    const name = document.getElementById('catName').value.trim();
+    if(!name) {alert('Please enter a category name!'); return false;}
+    alert('Category "'+name+'" created! (Demo)');
+    document.getElementById('catName').value = '';
+    return false; // Prevent actual form submit/refresh  
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Items Section - Departments On Top</title>
+    <style>
+        body {font-family: system-ui,sans-serif; background: #f8f9fa; margin:0;}
+        .container {max-width: 1500px; margin: 25px auto; background:#fff; border-radius: 13px; box-shadow: 0 6px 36px #0002; padding:10px 0 35px 0;}
+        /* Department Tabs */
+        .tabs {display:flex; gap:35px; border-bottom:3px solid #e8ecfa; margin:10px 0 20px 0;}
+        .tab-btn {background:none; border:none; cursor:pointer;padding:20px 22px 14px 22px; font-size:1.09rem; font-weight:600; color:#6b759a;border-bottom:3px solid transparent;}
+        .tab-btn.active {color:#1b52a9;border-bottom:3px solid #1b52a9;}
+        /* Main Layout */
+        .master-flex {display: flex;}
+        .sidebar {
+            width: 315px; background: #fafdff; border-right:1.2px solid #e0e9f0; display: flex; flex-direction:column; padding: 24px 0 22px 22px; box-shadow:0 2px 18px #0001;
+        }
+        .sidebar-header {display:flex; gap: 10px; margin-bottom:8px; align-items:center;}
+        .btn-add {
+            background: #fea500; color: #fff; border: none; border-radius: 5px; font-size: 15px; padding:7px 22px;
+            font-weight: 600; cursor:pointer; transition: filter 0.2s;
+        }
+        .btn-add:hover {filter: brightness(93%);}
+        .sidebar-header input {
+            flex:1; padding: 8px 12px; border-radius:5px; border: 1px solid #dde3ed; font-size: 1rem; background: #f3f7fa;
+        }
+        .productlist {
+            margin: 10px 0 0 0; padding: 0; flex: 1 1 auto; overflow-y: auto; list-style: none;
+        }
+        .productlist li {
+            cursor: pointer; padding: 11px 14px; border-radius: 7px; margin:2px 5px; user-select: none; color: #283c5e; font-size: 15px; transition: background 0.15s;
+        }
+        .productlist li.selected, .productlist li:hover {background: #dde8fe; color:#1d69c2; font-weight: 600;}
+        .main-panel {flex: 1 1 auto; padding: 0 32px 0 22px;}
+        .prod-header {
+            display:flex; align-items: end; border-bottom:2px solid #e2e5f3; background:#f1f6fd;
+            padding: 26px 10px 16px 0; margin-bottom: 0px; position: relative;
+        }
+        .header-info {flex:1 1 auto; min-width: 220px;}
+        .prod-title {font-size: 1.36em; font-weight:700; color: #1c3658;}
+        .prod-vals { font-size:15px; color:#0f7342; margin: 13px 0 0 5px;}
+        .prod-vals span {font-weight: 600; color:#31734a;}
+        .stock-info { margin-right: 22px; color:#306033; font-size:15px;}
+        .btn-adjust {
+            background: #185adb; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight:700; cursor:pointer; padding: 10px 30px;
+            margin-left: 16px; margin-bottom: 11px; transition: background 0.2s;
+        }
+        .btn-adjust:hover {background: #1445ac;}
+        .trans-table {width:100%; border-collapse: collapse; font-size: 15px; margin-top: 16px;}
+        .trans-table th, .trans-table td {padding: 14px 12px; border-bottom: 1px solid #e5edfa;}
+        .trans-table th {color: #185adb; font-weight: 700;}
+        tr:hover {background: #e8f2ff;}
+        .trans-table .actions a { color: #1b52a9; text-decoration: none; font-weight: 600; margin: 0 5px; }
+        .trans-table .actions a:hover { text-decoration: underline; }
+        /* Adjust Modal */
+        #adjustModal {display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:#0002; z-index:2000;}
+        #adjustModal .modal-content {background:#fff; border-radius:10px; margin:10vh auto; max-width:370px; padding:28px 27px;
+            box-shadow:0 6px 24px #0003; font-size: 16px;}
+        #adjustModal label {display:block;font-size: 1em; margin:0 0 14px 0;}
+        #adjustModal input {margin-left:8px;padding:6px;width:168px;border-radius:5px;border:1px solid #bacef1;}
+        .modal-btns {margin-top:22px;text-align:right;}
+        .modal-btns button {padding:8px 18px;font-size:16px;border-radius:6px;border:none;}
+        .modal-btns .save-btn {background:#2563eb;color:#fff;margin-left:11px;}
+        .modal-btns .cancel-btn {background:#e2e9f4;color:#333;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-products" onclick="showTab('Products')">PRODUCTS</button>
+            <button class="tab-btn" id="tab-services" onclick="showTab('Services')">SERVICES</button>
+            <button class="tab-btn" id="tab-category" onclick="showTab('Category')">CATEGORY</button>
+            <button class="tab-btn" id="tab-units" onclick="showTab('Units')">UNITS</button>
+        </div>
+        
+        <!-- == Products Section == -->
+        <div id="Products" class="tab-panel active">
+            <div class="master-flex">
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <button class="btn-add" onclick="addProduct()">+ Add Item</button>
+                        <input type="text" placeholder="Search products...">
+                    </div>
+                    <ul class="productlist" id="productList">
+                        <li class="selected">005 BK INK</li>
+                        <li>HP PRINTER CARTRIDGE</li>
+                        <li>COMP TONER CARTRIDGE</li>
+                    </ul>
+                </div>
+                <div class="main-panel">
+                    <div class="prod-header">
+                        <div class="header-info">
+                            <div class="prod-title" id="prodTitle">005 BK INK</div>
+                            <div class="prod-vals">
+                                SALE PRICE: <span id="prodSale">₹0.00</span> &nbsp;&nbsp;|&nbsp;&nbsp; PURCHASE PRICE: <span id="prodPurchase">₹525.42</span>
+                            </div>
+                        </div>
+                        <div class="stock-info" id="stockInfo">STOCK QTY: <b>1</b></div>
+                        <button class="btn-adjust" onclick="showAdjustModal()">ADJUST ITEM</button>
+                    </div>
+                    <table class="trans-table">
+                        <thead>
+                            <tr><th>TYPE</th><th>INV/REF</th><th>NAME</th><th>DATE</th><th>QTY</th><th>PRICE/UNIT</th><th>STATUS</th><th>ACTIONS</th></tr>
+                        </thead>
+                        <tbody id="transBody">
+                            <tr>
+                                <td>Sale</td><td>G/M-246</td><td>Cash Sale</td><td>24/07/2025</td><td>1</td><td>₹750.00</td><td>Paid</td>
+                                <td class="actions"><a href="#" onclick="editTransaction('G/M-246')">Edit</a> | <a href="#" onclick="deleteTransaction('G/M-246')">Delete</a></td>
+                            </tr>
+                            <tr>
+                                <td>Sale</td><td>1863</td><td>Cash Sale</td><td>08/05/2025</td><td>1</td><td>₹830.00</td><td>Paid</td>
+                                <td class="actions"><a href="#" onclick="editTransaction('1863')">Edit</a> | <a href="#" onclick="deleteTransaction('1863')">Delete</a></td>
+                            </tr>
+                            <tr>
+                                <td>Opening</td><td>-</td><td>Opening Stock</td><td>01/04/2025</td><td>-1</td><td>-</td><td>-</td>
+                                <td class="actions"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- == Services Section == -->
+        <div id="Services" class="tab-panel" style="display:none;">
+            <div class="master-flex">
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <button class="btn-add" onclick="addService()">+ Add Service</button>
+                        <input type="text" placeholder="Search services...">
+                    </div>
+                    <ul class="productlist" id="serviceList">
+                        <li class="selected">HP PRINTER REPAIRING</li>
+                        <li>INSTALLATION CHARGE</li>
+                    </ul>
+                </div>
+                <div class="main-panel">
+                    <div class="prod-header">
+                        <div class="header-info">
+                            <div class="prod-title" id="serviceTitle">HP PRINTER REPAIRING</div>
+                            <div class="prod-vals">SALE PRICE: <span id="serviceSale">₹0.00</span></div>
+                        </div>
+                    </div>
+                    <table class="trans-table">
+                        <thead>
+                            <tr><th>TYPE</th><th>INVOICE/REF. NO</th><th>NAME</th><th>DATE</th><th>ACTIONS</th></tr>
+                        </thead>
+                        <tbody id="serviceTransBody">
+                            <tr>
+                                <td>Sale</td><td>G/A-127</td><td>SUMIT</td><td>24/06/2025</td>
+                                <td class="actions"><a href="#">Edit</a> | <a href="#">Delete</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- == Category Section == -->
+        <div id="Category" class="tab-panel" style="display:none;">
+            <div style="padding:32px; color:#272;">Category department content goes here...</div>
+        </div>
+
+        <!-- == Units Section == -->
+        <div id="Units" class="tab-panel" style="display:none;">
+            <div style="padding:32px; color:#073;">Units department content goes here...</div>
+        </div>
+    </div>
+
+    <!-- Adjust Modal -->
+    <div id="adjustModal">
+        <div class="modal-content">
+            <h3>Adjust Item</h3>
+            <label>Quantity: <input type="number" id="adjQty" value="1"></label>
+            <label>Price: <input type="number" id="adjPrice" value="525.42"></label>
+            <div class="modal-btns">
+                <button class="cancel-btn" onclick="closeAdjustModal()">Cancel</button>
+                <button class="save-btn" onclick="saveAdjust()">Save</button>
+            </div>
+        </div>
+    </div>
+<script>
+    function showTab(tab) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = "none");
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tab).style.display = "block";
+        document.getElementById('tab-' + tab.toLowerCase()).classList.add('active');
+    }
+
+    document.querySelectorAll('#productList li').forEach(li => {
+        li.onclick = function() {
+            document.querySelectorAll('#productList li').forEach(x => x.classList.remove('selected'));
+            this.classList.add('selected');
+        };
+    });
+    
+    document.querySelectorAll('#serviceList li').forEach(li => {
+        li.onclick = function() {
+            document.querySelectorAll('#serviceList li').forEach(x => x.classList.remove('selected'));
+            this.classList.add('selected');
+        };
+    });
+
+    function addProduct() { window.location.href = "create_item.html?type=product"; }
+    function addService() { window.location.href = "create_item.html?type=service"; }
+
+    function editTransaction(invRef) {
+        alert(`Edit transaction with INV/REF: ${invRef}`);
+    }
+
+    function deleteTransaction(invRef) {
+        if (confirm(`Are you sure you want to delete transaction ${invRef}?`)) {
+            alert(`Deleting transaction ${invRef}... (This is a demo)`);
+        }
+    }
+
+    function showAdjustModal() {document.getElementById('adjustModal').style.display = 'block';}
+    function closeAdjustModal() {document.getElementById('adjustModal').style.display = 'none';}
+    function saveAdjust() {alert('Adjustment saved! (Demo only)'); closeAdjustModal();}
+</script>
+</body>
+</html>

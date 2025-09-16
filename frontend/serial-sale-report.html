@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Serial Number Sales Report</title></head>
+<body>
+
+<h2>Serial Number Sales Management</h2>
+
+<!-- Add Sale -->
+<h3>Add Sale Record</h3>
+<form id="saleForm">
+  <label>Product</label>
+  <select id="productSelect"></select><br><br>
+  
+  <label>Serial Number</label>
+  <select id="serialSelect"></select><br><br>
+  
+  <label>Party Name</label>
+  <input type="text" id="partyName" placeholder="Enter party/customer name" required /><br><br>
+  
+  <button type="submit">Record Sale</button>
+</form>
+
+<hr>
+
+<!-- Report Search -->
+<h3>Search Serial Number Sale</h3>
+<label>Serial Number</label>
+<input type="text" id="searchSerial" placeholder="Enter serial number to search" />
+<button onclick="searchSale()">Search</button>
+
+<div id="searchResult" style="margin-top: 20px; font-weight: bold;"></div>
+
+<script>
+  const products = [
+    {id: 1, name: "Product A"},
+    {id: 2, name: "Product B"}
+  ];
+
+  let serialNumbers = [
+    {serial: "SN001", productId: 1, soldTo: null},
+    {serial: "SN002", productId: 1, soldTo: null},
+    {serial: "SN003", productId: 2, soldTo: null}
+  ];
+
+  let sales = [];
+
+  // Populate product select options
+  const productSelect = document.getElementById('productSelect');
+  products.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = p.name;
+    productSelect.appendChild(option);
+  });
+
+  // Update serial select based on product selected and serial unsold
+  productSelect.addEventListener('change', updateSerialOptions);
+  function updateSerialOptions() {
+    const prodId = parseInt(productSelect.value);
+    const serialSelect = document.getElementById('serialSelect');
+    serialSelect.innerHTML = '';
+    const availableSerials = serialNumbers.filter(sn => sn.productId === prodId && sn.soldTo === null);
+    availableSerials.forEach(sn => {
+      const option = document.createElement('option');
+      option.value = sn.serial;
+      option.textContent = sn.serial;
+      serialSelect.appendChild(option);
+    });
+  }
+  updateSerialOptions(); // initial fill
+
+  // Sale form submit
+  document.getElementById('saleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const serial = document.getElementById('serialSelect').value;
+    const party = document.getElementById('partyName').value.trim();
+    if (!serial) {
+      alert("Select a serial number.");
+      return;
+    }
+    if (!party) {
+      alert("Enter party/customer name.");
+      return;
+    }
+    // Mark serial number as sold
+    const sn = serialNumbers.find(s => s.serial === serial);
+    if (sn.soldTo !== null) {
+      alert("This serial number is already sold.");
+      return;
+    }
+    sn.soldTo = party;
+
+    // Record sale
+    sales.push({serial: serial, party: party, date: new Date().toLocaleDateString()});
+    alert(`Sale recorded: Serial ${serial} sold to ${party}.`);
+
+    // Reset form and update serial options
+    this.reset();
+    updateSerialOptions();
+  });
+
+  // Search sale by serial number
+  function searchSale() {
+    const query = document.getElementById('searchSerial').value.trim();
+    const resultDiv = document.getElementById('searchResult');
+    if (!query) {
+      alert("Please enter serial number.");
+      return;
+    }
+    const sale = sales.find(s => s.serial === query);
+    if (sale) {
+      resultDiv.textContent = `Serial Number "${query}" sold to "${sale.party}" on ${sale.date}.`;
+    } else {
+      resultDiv.textContent = `Serial Number "${query}" is not sold or does not exist in records.`;
+    }
+  }
+</script>
+
+</body>
+</html>

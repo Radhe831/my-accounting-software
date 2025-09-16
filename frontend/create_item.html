@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Item</title>
+    <style>
+        :root { --primary-color: #5e72e4; --secondary-color: #f4f5f7; --text-color: #525f7f; --border-color: #e9ecef; --header-bg: #fff; --white: #fff; --blue-light: #e9f2ff;}
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--secondary-color); margin: 0; padding: 20px; color: var(--text-color); }
+        .main-container { max-width: 1200px; margin: auto; background: var(--header-bg); border-radius: 0.5rem; box-shadow: 0 0 2rem 0 rgba(136,152,170,.15); }
+        .page-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem; }
+        .page-header h1 { font-size: 1.2rem; margin: 0; color: #32325d; font-weight: 600; }
+        .form-content { padding: 1.5rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; align-items: end; }
+        .form-section { grid-column: span 4; border: 1px solid var(--border-color); border-radius: .5rem; margin-top: 1rem; }
+        .form-section-header { padding: .75rem 1.25rem; background-color: #f6f9fc; border-bottom: 1px solid var(--border-color); font-weight: 600; }
+        .form-section-body { padding: 1.25rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.span-2 { grid-column: span 2; }
+        .form-group label { margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-size: 0.9rem; box-sizing: border-box; }
+        .price-group { display: flex; }
+        .price-group input { border-radius: 0.375rem 0 0 0.375rem; }
+        .price-group select { border-left: none; border-radius: 0 0.375rem 0.375rem 0; width: 120px; }
+        .tabs { display: flex; border-bottom: 1px solid var(--border-color); margin: 1rem 0; }
+        .tab-button { padding: 0.75rem 1rem; border: none; background: transparent; cursor: pointer; font-size: 0.9rem; margin-bottom: -1px; border-bottom: 2px solid transparent; }
+        .tab-button.active { border-bottom-color: var(--primary-color); color: var(--primary-color); font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .actions-footer { padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 0.75rem; }
+        .btn { padding: 0.65rem 1.25rem; border-radius: 0.375rem; border: 1px solid; cursor: pointer; font-weight: 600; }
+        .btn-primary { background-color: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;}
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;}
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <form id="item-form">
+        <div class="page-header">
+            <h1>Add Item</h1>
+            <span style="font-weight: 500;">Product</span>
+            <label class="switch"><input type="checkbox" id="item-type-switch"><span class="slider"></span></label>
+            <span style="font-weight: 500;">Service</span>
+        </div>
+        <div class="form-content">
+            <!-- Item Details -->
+            <div class="form-grid">
+                <div class="form-group span-2"><label for="item-name">Item Name *</label><input type="text" id="item-name" required></div>
+                <div class="form-group"><label for="item-hsn">Item HSN</label><input type="text" id="item-hsn"></div>
+                <div class="form-group"><label for="item-code">Item Code</label><input type="text" id="item-code"></div>
+                <div class="form-group"><label for="category">Category</label><input type="text" id="category"></div>
+                <div class="form-group"><label for="unit">Unit</label><input type="text" id="unit" placeholder="e.g., PCS, BOX"></div>
+                <div class="form-group span-2"><label for="description">Description</label><input type="text" id="description"></div>
+            </div>
+            
+            <div class="tabs">
+                <button type="button" class="tab-button active" onclick="openTab(event, 'Pricing')">Pricing</button>
+                <button type="button" class="tab-button" onclick="openTab(event, 'Stock')">Stock</button>
+            </div>
+
+            <!-- Pricing Tab -->
+            <div id="Pricing" class="tab-content active form-grid">
+                <!-- Sale Price -->
+                <div class="form-group span-2"><label>Sale Price</label><div class="price-group"><input type="number" id="sale-price" value="0"><select id="sale-tax-type"><option>Without Tax</option><option>With Tax</option></select></div></div>
+                <!-- Wholesale Price -->
+                <div class="form-group span-2"><label>Wholesale Price</label><div class="price-group"><input type="number" id="wholesale-price" value="0"><select id="wholesale-tax-type"><option>Without Tax</option><option>With Tax</option></select></div></div>
+                <div class="form-group span-2"><label>Minimum Wholesale Qty</label><input type="number" id="wholesale-min-qty" value="1"></div>
+                <!-- Purchase Price -->
+                <div class="form-group span-2" id="purchase-price-group"><label>Purchase Price</label><div class="price-group"><input type="number" id="purchase-price" value="0"><select id="purchase-tax-type"><option>Without Tax</option><option>With Tax</option></select></div></div>
+                <!-- Taxes -->
+                <div class="form-group span-2"><label>Tax Rate</label><select id="tax-rate"><option>None</option><option>GST@5</option><option>GST@12</option><option>GST@18</option></select></div>
+            </div>
+
+            <!-- Stock Tab -->
+            <div id="Stock" class="tab-content form-grid">
+                <div class="form-group"><label>Opening Qty</label><input type="number" id="stock-opening-qty" value="0"></div>
+                <div class="form-group"><label>As of Date</label><input type="date" id="stock-date"></div>
+                <div class="form-group"><label>Min Stock to Maintain</label><input type="number" id="stock-min" value="0"></div>
+                <div class="form-group"><label>Location</label><input type="text" id="stock-location"></div>
+            </div>
+        </div>
+        <div class="actions-footer">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const itemTypeSwitch = document.getElementById('item-type-switch');
+    const stockTab = document.querySelector('.tab-button[onclick*="Stock"]');
+    const purchaseGroup = document.getElementById('purchase-price-group');
+
+    function updateFormVisibility() {
+        const isService = itemTypeSwitch.checked;
+        const display = isService ? 'none' : '';
+        stockTab.style.display = display;
+        purchaseGroup.style.display = display;
+        document.getElementById('Stock').style.display = isService ? 'none' : document.getElementById('Stock').style.display;
+        if(isService && document.getElementById('Stock').classList.contains('active')) {
+            openTab(null, 'Pricing');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        itemTypeSwitch.checked = (urlParams.get('type') === 'service');
+        document.getElementById('stock-date').valueAsDate = new Date();
+        updateFormVisibility();
+    });
+
+    itemTypeSwitch.addEventListener('change', updateFormVisibility);
+
+    function openTab(evt, tabName) {
+        document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+        document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+        document.getElementById(tabName).classList.add('active');
+        const currentButton = evt ? evt.currentTarget : document.querySelector(`.tab-button[onclick*="${tabName}"]`);
+        if(currentButton) currentButton.classList.add('active');
+    }
+
+    document.getElementById('item-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const isService = itemTypeSwitch.checked;
+        const itemData = {
+            itemType: isService ? 'Service' : 'Product',
+            name: document.getElementById('item-name').value,
+            hsnCode: document.getElementById('item-hsn').value,
+            itemCode: document.getElementById('item-code').value,
+            unit: document.getElementById('unit').value,
+            category: document.getElementById('category').value,
+            description: document.getElementById('description').value,
+            pricing: {
+                sale: { price: parseFloat(document.getElementById('sale-price').value) || 0, taxType: document.getElementById('sale-tax-type').value },
+                wholesale: { price: parseFloat(document.getElementById('wholesale-price').value) || 0, taxType: document.getElementById('wholesale-tax-type').value, minQuantity: parseInt(document.getElementById('wholesale-min-qty').value) || 1 },
+                purchase: { price: isService ? 0 : (parseFloat(document.getElementById('purchase-price').value) || 0), taxType: document.getElementById('purchase-tax-type').value }
+            },
+            stock: {
+                openingQuantity: isService ? 0 : (parseInt(document.getElementById('stock-opening-qty').value) || 0),
+                asOfDate: document.getElementById('stock-date').value,
+                minStockToMaintain: isService ? 0 : (parseInt(document.getElementById('stock-min').value) || 0),
+                location: document.getElementById('stock-location').value
+            },
+            taxRate: document.getElementById('tax-rate').value
+        };
+
+        try {
+            const response = await fetch('/api/items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(itemData)
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.details || result.message);
+            }
+            alert(`Success! '${result.name}' saved.`);
+            document.getElementById('item-form').reset();
+            document.getElementById('stock-date').valueAsDate = new Date();
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+</script>
+</body>
+</html>

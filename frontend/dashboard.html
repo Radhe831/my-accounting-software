@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { margin: 0; }
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: auto auto auto; gap: 20px; grid-template-areas: "receivable side" "payable side" "sale side" "chart side" "reports reports"; }
+        .card { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-title { color: #6c757d; font-size: 0.9em; margin-bottom: 5px; }
+        .card-value { font-size: 1.8em; font-weight: 600; color: #212529; }
+        .card-subtitle { font-size: 0.8em; color: #6c757d; }
+        #receivable-card { grid-area: receivable; }
+        #payable-card { grid-area: payable; }
+        #sale-card { grid-area: sale; }
+        #chart-card { grid-area: chart; min-height: 250px; }
+        #side-col { grid-area: side; display: flex; flex-direction: column; gap: 20px; }
+        #reports-card { grid-area: reports; }
+        #receivable-card .card-value { color: #28a745; }
+        #payable-card .card-value { color: #dc3545; }
+        #low-stock-list { list-style: none; padding: 0; font-size: 0.9em; }
+        #low-stock-list li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f1f1; }
+        #low-stock-list li:last-child { border-bottom: none; }
+        .reports-container { display: flex; justify-content: space-around; gap: 15px; }
+        .report-link { flex: 1; padding: 15px; background-color: #f8f9fa; border-radius: 5px; text-decoration: none; color: #333; font-weight: 500; text-align: center; transition: background-color 0.2s; }
+        .report-link:hover { background-color: #e9ecef; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="toolbar">
+        <h1>Dashboard</h1>
+        <div><label><b>Firm:</b></label> <select id="company-switcher"></select></div>
+    </div>
+    <div class="dashboard-grid">
+        <div id="receivable-card" class="card">
+            <div class="card-title">Total Receivable</div>
+            <div id="total-receivable" class="card-value">₹0.00</div>
+            <div id="receivable-parties" class="card-subtitle">From 0 Parties</div>
+        </div>
+        <div id="payable-card" class="card">
+            <div class="card-title">Total Payable</div>
+            <div id="total-payable" class="card-value">₹0.00</div>
+            <div id="payable-parties" class="card-subtitle">From 0 Parties</div>
+        </div>
+        <div id="sale-card" class="card">
+            <div class="card-title">Total Sale (This Month)</div>
+            <div id="monthly-sales" class="card-value">₹0.00</div>
+        </div>
+        <div id="chart-card" class="card">
+             <div class="card-title">Sales Chart</div>
+        </div>
+        <div id="side-col">
+            <div class="card">
+                <div class="card-title">Purchases (This Month)</div>
+                <div id="monthly-purchases" class="card-value">₹0.00</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Expenses (This Month)</div>
+                <div id="monthly-expenses" class="card-value">₹0.00</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Stock Value</div>
+                <div id="stock-value" class="card-value">₹0.00</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Cash & Bank</div>
+                <div id="total-bank-balance" class="card-value">₹0.00</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Low Stock Items</div>
+                <ul id="low-stock-list"><li>No items are low in stock.</li></ul>
+            </div>
+        </div>
+        <div id="reports-card" class="card">
+            <h3 style="margin-top:0;">Most Used Reports</h3>
+            <div class="reports-container">
+                <a href="reports.html" target="content-frame" class="report-link">Sale Report</a>
+                <a href="reports.html" target="content-frame" class="report-link">All Transactions</a>
+                <a href="reports.html" target="content-frame" class="report-link">Party Statement</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let activeCompanyId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        activeCompanyId = localStorage.getItem('activeCompanyId');
+        const companies = JSON.parse(localStorage.getItem('companies')) || [];
+        companies.forEach(c => { document.getElementById('company-switcher').innerHTML += `<option value="${c.id}">${c.company_name}</option>`; });
+        if(activeCompanyId) {
+            document.getElementById('company-switcher').value = activeCompanyId;
+        }
+        updateDashboard();
+
+        document.getElementById('company-switcher').addEventListener('change', (e) => {
+            activeCompanyId = e.target.value; 
+            localStorage.setItem('activeCompanyId', activeCompanyId); 
+            updateDashboard();
+        });
+    });
+
+    function updateDashboard() {
+        if (!activeCompanyId) return;
+
+        const allItems = JSON.parse(localStorage.getItem('items')) || [];
+        const allSales = JSON.parse(localStorage.getItem('sales')) || [];
+        const allPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
+        const allTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        const allParties = JSON.parse(localStorage.getItem('parties')) || [];
+        const allCreditNotes = JSON.parse(localStorage.getItem('creditNotes')) || []; // Load Credit Notes
+
+        // Filter data for the active company
+        const companyItems = allItems.filter(i => i.companyId == activeCompanyId);
+        const companySales = allSales.filter(s => s.companyId == activeCompanyId);
+        const companyPurchases = allPurchases.filter(p => p.companyId == activeCompanyId);
+        const companyTransactions = allTransactions.filter(t => t.companyId == activeCompanyId);
+        const companyCreditNotes = allCreditNotes.filter(cn => cn.companyId == activeCompanyId);
+        
+        // Calculate Total Sales and Total Credit Notes
+        const totalSalesAmount = companySales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+        const totalCreditNotesAmount = companyCreditNotes.reduce((sum, cn) => sum + cn.totalAmount, 0);
+
+        // Calculate Total Payments Received
+        const totalPaymentIn = companyTransactions
+            .filter(t => t.type === 'PaymentIn')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // Calculate Total Receivable
+        const totalReceivable = totalSalesAmount - totalPaymentIn - totalCreditNotesAmount;
+        document.getElementById('total-receivable').textContent = `₹${totalReceivable.toFixed(2)}`;
+
+        // Calculate Total Payable
+        const totalPurchasesAmount = companyPurchases.reduce((sum, purchase) => sum + purchase.totalAmount, 0);
+        const totalPaymentOut = companyTransactions
+            .filter(t => t.type === 'PaymentOut')
+            .reduce((sum, t) => sum + t.amount, 0);
+        const totalPayable = totalPurchasesAmount - totalPaymentOut;
+        document.getElementById('total-payable').textContent = `₹${totalPayable.toFixed(2)}`;
+
+        // Party Counts
+        const receivablePartyIds = new Set(companySales.map(s => s.partyId));
+        const payablePartyIds = new Set(companyPurchases.map(p => p.partyId));
+        document.getElementById('receivable-parties').textContent = `From ${receivablePartyIds.size} Parties`;
+        document.getElementById('payable-parties').textContent = `From ${payablePartyIds.size} Parties`;
+        
+        // Monthly Totals
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        const monthlySales = companySales
+            .filter(s => new Date(s.date).getMonth() === currentMonth && new Date(s.date).getFullYear() === currentYear)
+            .reduce((sum, s) => sum + s.totalAmount, 0);
+        document.getElementById('monthly-sales').textContent = `₹${monthlySales.toFixed(2)}`;
+        
+        const monthlyPurchases = companyPurchases
+            .filter(p => new Date(p.date).getMonth() === currentMonth && new Date(p.date).getFullYear() === currentYear)
+            .reduce((sum, p) => sum + p.totalAmount, 0);
+        document.getElementById('monthly-purchases').textContent = `₹${monthlyPurchases.toFixed(2)}`;
+
+        const monthlyExpenses = companyTransactions
+            .filter(t => t.type === 'Expense' && new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear)
+            .reduce((sum, t) => sum + t.amount, 0);
+        document.getElementById('monthly-expenses').textContent = `₹${monthlyExpenses.toFixed(2)}`;
+
+        // Stock Value
+        const stockValue = companyItems.reduce((sum, item) => sum + (item.price * item.stock), 0);
+        document.getElementById('stock-value').textContent = `₹${stockValue.toFixed(2)}`;
+
+        // Cash & Bank Balance
+        const allAccounts = JSON.parse(localStorage.getItem('bank_accounts')) || [];
+        const companyAccounts = allAccounts.filter(acc => acc.companyId == activeCompanyId);
+        let totalBankBalance = 0;
+        companyAccounts.forEach(acc => {
+            totalBankBalance += calculateAccountBalance(acc.id);
+        });
+        const cashInHand = calculateAccountBalance('cash');
+        document.getElementById('total-bank-balance').textContent = `₹${totalBankBalance.toFixed(2)}`;
+        // Note: We need a separate 'Cash In Hand' element if we want to show it separately.
+        
+        // Low Stock Items
+        const lowStockItems = companyItems.filter(item => item.stock <= 5);
+        const lowStockListEl = document.getElementById('low-stock-list');
+        lowStockListEl.innerHTML = lowStockItems.length > 0 ? lowStockItems.map(item => `<li><span>${item.name}</span> <strong>${item.stock}</strong></li>`).join('') : '<li>No items are low in stock.</li>';
+    }
+
+    // Helper function to calculate balance for a specific account (from cash_bank.html)
+    function calculateAccountBalance(accountId) {
+        let balance = 0;
+        const allTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        const accountTransactions = allTransactions.filter(t => t.companyId == activeCompanyId && (t.accountId == accountId || (t.type === 'BankTransfer' && (t.fromAccountId == accountId || t.toAccountId == accountId))));
+        accountTransactions.forEach(t => {
+            if (t.type === 'PaymentIn' || t.type === 'Deposit') {
+                if (t.accountId == accountId) balance += t.amount;
+            } else if (t.type === 'PaymentOut' || t.type === 'Expense' || t.type === 'Withdraw') {
+                if (t.accountId == accountId) balance -= t.amount;
+            } else if (t.type === 'BankTransfer') {
+                if (t.fromAccountId == accountId) balance -= t.amount;
+                if (t.toAccountId == accountId) balance += t.amount;
+            }
+        });
+        return balance;
+    }
+</script>
+</body>
+</html>

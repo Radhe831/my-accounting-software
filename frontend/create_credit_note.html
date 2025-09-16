@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create/Edit Credit Note</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1 id="page-title">New Credit Note (Sale Return)</h1>
+        <a href="credit_note.html" target="content-frame" class="btn btn-secondary">Back to List</a>
+    </div>
+    <hr>
+    <div>
+        <input type="hidden" id="cnId">
+        <div class="form-row">
+            <div><label><b>Firm:</b></label><select id="company-switcher" disabled></select></div>
+            <div><label for="cn-date">Date:</label><input type="date" id="cn-date" style="width:100%; padding: 8px;"></div>
+        </div>
+        <div class="form-row">
+             <div><label for="party-selector">Customer:</label><select id="party-selector" style="width:100%; padding: 8px;"></select></div>
+        </div>
+        <table id="items-table">
+            <thead><tr><th>Item</th><th style="width: 15%;">Qty</th><th style="width: 20%;">Price</th><th style="width: 20%;">Total</th><th></th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <button id="add-item-btn" style="margin-top: 10px;">+ Add Item</button>
+        <div id="grand-total" style="text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 10px;">Grand Total: ₹0.00</div>
+        <button id="save-cn-btn" class="btn btn-primary" style="margin-top: 20px;">Save Credit Note</button>
+    </div>
+</div>
+
+<script>
+    let activeCompanyId = null; let allItems = [], allParties = [], originalCnItems = [];
+    const partySelector = document.getElementById('party-selector');
+    const cnDateEl = document.getElementById('cn-date');
+    const itemsTableBody = document.querySelector('#items-table tbody');
+    const pageTitle = document.getElementById('page-title');
+    const cnIdField = document.getElementById('cnId');
+    const saveButton = document.getElementById('save-cn-btn');
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        activeCompanyId = localStorage.getItem('activeCompanyId');
+        if (!activeCompanyId) return;
+        document.getElementById('company-switcher').innerHTML = `<option>${localStorage.getItem('activeCompanyName') || 'Selected Firm'}</option>`;
+        
+        allParties = JSON.parse(localStorage.getItem('parties')) || [];
+        allItems = JSON.parse(localStorage.getItem('items')) || [];
+        populateCustomers();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+
+        if (editId) {
+            loadCreditNoteForEditing(editId);
+            pageTitle.textContent = 'Edit Credit Note';
+            saveButton.textContent = 'Update Credit Note';
+        } else {
+            cnDateEl.valueAsDate = new Date();
+            addNewItemRow();
+        }
+
+        document.getElementById('add-item-btn').addEventListener('click', () => addNewItemRow());
+        saveButton.addEventListener('click', saveCreditNote);
+    });
+    
+    function loadCreditNoteForEditing(id) {
+        const allCreditNotes = JSON.parse(localStorage.getItem('creditNotes')) || [];
+        const cn = allCreditNotes.find(c => c.id === id);
+        if (cn) {
+            cnIdField.value = cn.id;
+            cnDateEl.value = cn.date;
+            partySelector.value = cn.partyId;
+            originalCnItems = JSON.parse(JSON.stringify(cn.items));
+
+            itemsTableBody.innerHTML = '';
+            cn.items.forEach(item => addNewItemRow(item));
+            calculateGrandTotal();
+        }
+    }
+    
+    function saveCreditNote() {
+        let allCreditNotes = JSON.parse(localStorage.getItem('creditNotes')) || [];
+        let allItems = JSON.parse(localStorage.getItem('items')) || [];
+        const currentId = cnIdField.value;
+
+        // Revert old stock changes if editing
+        if (currentId) {
+            originalCnItems.forEach(oldItem => {
+                const itemIndex = allItems.findIndex(i => i.id == oldItem.itemId);
+                if (itemIndex > -1) allItems[itemIndex].stock -= oldItem.qty;
+            });
+        }
+        
+        // Get new items and apply new stock changes
+        const newItems = [];
+        itemsTableBody.querySelectorAll('tr').forEach(row => {
+            const itemId = row.querySelector('.item-selector').value;
+            const qty = parseInt(row.querySelector('.item-qty').value);
+            if(itemId && qty > 0) {
+                const itemData = allItems.find(i => i.id == itemId);
+                newItems.push({itemId, itemName: itemData.name, qty, price: parseFloat(row.querySelector('.item-price').value), total: parseFloat(row.querySelector('.item-total').value)});
+                const itemIndex = allItems.findIndex(i => i.id == itemId);
+                if(itemIndex > -1) allItems[itemIndex].stock += qty;
+            }
+        });
+        localStorage.setItem('items', JSON.stringify(allItems));
+        
+        // Save Credit Note data
+        const cnData = {
+            date: cnDateEl.value,
+            companyId: activeCompanyId,
+            partyId: partySelector.value,
+            items: newItems,
+            totalAmount: parseFloat(document.getElementById('grand-total').textContent.replace('Grand Total: ₹', '')),
+            type: 'SaleReturn'
+        };
+        
+        if (currentId) { // Update
+            const index = allCreditNotes.findIndex(c => c.id === currentId);
+            allCreditNotes[index] = { ...allCreditNotes[index], ...cnData };
+        } else { // Create
+            cnData.id = "CN-" + Date.now();
+            allCreditNotes.push(cnData);
+        }
+        
+        localStorage.setItem('creditNotes', JSON.stringify(allCreditNotes));
+        alert('Credit Note saved successfully!');
+        window.parent.document.getElementById('content-frame').src = 'credit_note.html';
+    }
+
+    // Helper functions
+    function populateCustomers(){const companyCustomers=allParties.filter(p=>p.companyId==activeCompanyId&&p.type==="Customer");partySelector.innerHTML='<option value="">-- Select Customer --</option>',companyCustomers.forEach(c=>{partySelector.innerHTML+=`<option value="${c.id}">${c.name}</option>`})}
+    function addNewItemRow(item=null){const row=document.createElement("tr"),companyItems=allItems.filter(e=>e.companyId==activeCompanyId);let t='<option value="">-- Select Item --</option>';companyItems.forEach(e=>{t+=`<option value="${e.id}" data-price="${e.price}">${e.name}</option>`}),row.innerHTML=`<td><select class="item-selector">${t}</select></td><td><input type="number" class="item-qty" value="1" min="1"></td><td><input type="number" class="item-price" readonly></td><td><input type="text" class="item-total" readonly></td><td><button onclick="this.parentElement.parentElement.remove(); calculateGrandTotal();">X</button></td>`,itemsTableBody.appendChild(row);if(item){row.querySelector(".item-selector").value=item.itemId,row.querySelector(".item-qty").value=item.qty,row.querySelector(".item-price").value=item.price,row.querySelector(".item-total").value=item.total.toFixed(2)}row.querySelector(".item-selector").addEventListener("change",updateRowOnItemSelect),row.querySelector(".item-qty").addEventListener("input",calculateRowTotal)}
+    function updateRowOnItemSelect(e){const t=e.target,o=t.options[t.selectedIndex].getAttribute("data-price"),l=t.closest("tr");l.querySelector(".item-price").value=o,calculateRowTotal.call(l.querySelector(".item-qty"))}
+    function calculateRowTotal(){const e=this.closest("tr"),t=parseFloat(e.querySelector(".item-qty").value)||0,o=parseFloat(e.querySelector(".item-price").value)||0;e.querySelector(".item-total").value=(t*o).toFixed(2),calculateGrandTotal()}
+    function calculateGrandTotal(){let e=0;document.querySelectorAll("#items-table tbody tr").forEach(t=>{e+=parseFloat(t.querySelector(".item-total").value)||0}),document.getElementById("grand-total").textContent=`Grand Total: ₹${e.toFixed(2)}`}
+</script>
+</body>
+</html>

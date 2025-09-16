@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firm Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 5px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-success { background-color: #28a745; color: white; } /* Green for backup */
+        .btn-warning { background-color: #ffc107; color: black; } /* Yellow for restore */
+        #company-form-container { display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+        #company-list { list-style: none; padding: 0; }
+        #company-list li { background-color: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .data-management { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Firm Management</h1>
+        <h2>Your Firms</h2>
+        <ul id="company-list"></ul>
+        <button id="show-form-btn" class="btn btn-primary">Add New Firm</button>
+        
+        <div id="company-form-container">
+            <h2 id="form-title">New Firm Details</h2>
+            <form id="company-form">
+                <input type="hidden" id="company_id">
+                <div class="form-group"><label for="company_name">Firm Name:</label><input type="text" id="company_name" required></div>
+                <div class="form-group"><label for="address">Address:</label><textarea id="address"></textarea></div>
+                <div class="form-group"><label for="gst_number">GST Number:</label><input type="text" id="gst_number"></div>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+            </form>
+        </div>
+
+        <!-- NEW SECTION for Data Backup and Restore -->
+        <div class="data-management">
+            <h2>Data Management</h2>
+            <p>Save all your data to a file or restore it from a backup.</p>
+            <button id="backup-btn" class="btn btn-success">Backup Data</button>
+            <button id="restore-btn" class="btn btn-warning">Restore Data</button>
+            <input type="file" id="restore-file-input" style="display: none;" accept=".json">
+        </div>
+    </div>
+<script>
+    const companyListEl = document.getElementById('company-list');
+    const formContainer = document.getElementById('company-form-container');
+    const companyForm = document.getElementById('company-form');
+    const showFormBtn = document.getElementById('show-form-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const formTitle = document.getElementById('form-title');
+
+    function loadCompanies() {
+        const companies = JSON.parse(localStorage.getItem('companies')) || [];
+        companyListEl.innerHTML = '';
+        companies.forEach(company => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="company-name">${company.company_name}</span><div class="actions"><button class="btn btn-secondary" onclick="editCompany(${company.id})">Edit</button><button class="btn btn-primary" onclick="deleteCompany(${company.id})">Delete</button></div>`;
+            companyListEl.appendChild(li);
+        });
+    }
+    showFormBtn.addEventListener('click', () => { formTitle.textContent = 'New Firm Details'; companyForm.reset(); document.getElementById('company_id').value = ''; formContainer.style.display = 'block'; });
+    cancelBtn.addEventListener('click', () => { formContainer.style.display = 'none'; });
+    companyForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const companies = JSON.parse(localStorage.getItem('companies')) || [];
+        const companyId = document.getElementById('company_id').value;
+        const companyData = { company_name: document.getElementById('company_name').value, address: document.getElementById('address').value, gst_number: document.getElementById('gst_number').value };
+        if (companyId) { const index = companies.findIndex(c => c.id == companyId); companies[index] = { ...companies[index], ...companyData };
+        } else { companyData.id = Date.now(); companies.push(companyData); }
+        localStorage.setItem('companies', JSON.stringify(companies)); loadCompanies(); formContainer.style.display = 'none'; companyForm.reset();
+    });
+    function editCompany(id) {
+        const companies = JSON.parse(localStorage.getItem('companies')) || [];
+        const company = companies.find(c => c.id == id);
+        formTitle.textContent = 'Edit Firm Details'; document.getElementById('company_id').value = company.id; document.getElementById('company_name').value = company.company_name; document.getElementById('address').value = company.address; document.getElementById('gst_number').value = company.gst_number; formContainer.style.display = 'block';
+    }
+    function deleteCompany(id) {
+        if (confirm('Are you sure you want to delete this firm? This action cannot be undone.')) {
+            let companies = JSON.parse(localStorage.getItem('companies')) || [];
+            companies = companies.filter(c => c.id != id);
+            localStorage.setItem('companies', JSON.stringify(companies)); loadCompanies();
+        }
+    }
+    document.addEventListener('DOMContentLoaded', loadCompanies);
+
+    // --- NEW SCRIPT for Backup and Restore ---
+    const backupBtn = document.getElementById('backup-btn');
+    const restoreBtn = document.getElementById('restore-btn');
+    const restoreFileInput = document.getElementById('restore-file-input');
+
+    backupBtn.addEventListener('click', () => {
+        const allData = {
+            companies: JSON.parse(localStorage.getItem('companies')) || [],
+            items: JSON.parse(localStorage.getItem('items')) || [],
+            parties: JSON.parse(localStorage.getItem('parties')) || [],
+            sales: JSON.parse(localStorage.getItem('sales')) || [],
+            purchases: JSON.parse(localStorage.getItem('purchases')) || [],
+            transactions: JSON.parse(localStorage.getItem('transactions')) || [],
+            activeCompanyId: localStorage.getItem('activeCompanyId') || null,
+        };
+
+        const dataStr = JSON.stringify(allData, null, 2); // Pretty print JSON
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'accounting_backup.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    restoreBtn.addEventListener('click', () => {
+        restoreFileInput.click(); // Open file selection dialog
+    });
+
+    restoreFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) { return; }
+
+        if (!confirm('Are you sure you want to restore data? This will overwrite all current data.')) {
+            restoreFileInput.value = ''; // Reset file input
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const restoredData = JSON.parse(e.target.result);
+                
+                // Clear existing data
+                localStorage.clear();
+
+                // Restore new data
+                localStorage.setItem('companies', JSON.stringify(restoredData.companies || []));
+                localStorage.setItem('items', JSON.stringify(restoredData.items || []));
+                localStorage.setItem('parties', JSON.stringify(restoredData.parties || []));
+                localStorage.setItem('sales', JSON.stringify(restoredData.sales || []));
+                localStorage.setItem('purchases', JSON.stringify(restoredData.purchases || []));
+                localStorage.setItem('transactions', JSON.stringify(restoredData.transactions || []));
+                if (restoredData.activeCompanyId) {
+                    localStorage.setItem('activeCompanyId', restoredData.activeCompanyId);
+                }
+
+                alert('Data restored successfully! The page will now reload.');
+                window.location.reload();
+
+            } catch (error) {
+                alert('Error: Invalid backup file.');
+            }
+        };
+        reader.readAsText(file);
+    });
+</script>
+</body>
+</html>

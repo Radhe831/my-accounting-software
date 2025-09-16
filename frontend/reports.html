@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .toolbar, .filters { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        select, input { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        #report-title { font-size: 1.5em; font-weight: bold; margin-bottom: 10px; }
+        #balance-summary { text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 15px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="toolbar">
+        <h1>Reports</h1>
+        <div><label><b>Firm:</b></label><select id="company-switcher"></select></div>
+    </div>
+    <div class="filters">
+        <div>
+            <label>Select Report:</label>
+            <select id="report-selector">
+                <option value="sales">Sales Report</option>
+                <option value="stock">Stock Report</option>
+                <option value="ledger">Party Ledger</option>
+            </select>
+        </div>
+        <!-- NEW: Date filters specifically for Sales Report -->
+        <div id="date-filters" style="display: none;">
+            <label>From:</label> <input type="date" id="start-date">
+            <label>To:</label> <input type="date" id="end-date">
+        </div>
+        <div id="party-filter" style="display: none;"><label>Select Party:</label><select id="party-selector-ledger"></select></div>
+        <button id="generate-report-btn" style="padding: 8px 12px; border:none; border-radius:4px; color:white; cursor:pointer; background-color: #007bff;">Generate Report</button>
+    </div>
+    <hr>
+    <div id="report-output">
+        <h2 id="report-title"></h2>
+        <table id="report-table"><thead></thead><tbody></tbody></table>
+        <div id="balance-summary"></div>
+    </div>
+</div>
+<script>
+// --- FINAL UPDATED SCRIPT ---
+let activeCompanyId = null; let allItems = [], allParties = [], allSales = [], allPurchases = [], allTransactions = [];
+const companySwitcher = document.getElementById('company-switcher');
+const reportSelector = document.getElementById('report-selector');
+const dateFilters = document.getElementById('date-filters');
+const partyFilter = document.getElementById('party-filter');
+const startDateEl = document.getElementById('start-date');
+const endDateEl = document.getElementById('end-date');
+
+document.addEventListener('DOMContentLoaded', () => {
+    const companies = JSON.parse(localStorage.getItem('companies')) || [];
+    activeCompanyId = localStorage.getItem('activeCompanyId') || (companies.length > 0 ? companies[0].id : null);
+    companies.forEach(c => companySwitcher.innerHTML += `<option value="${c.id}">${c.company_name}</option>`);
+    if(activeCompanyId) companySwitcher.value = activeCompanyId;
+    loadData();
+    setupFilters();
+});
+
+function loadData() {
+    if(!activeCompanyId) return;
+    allItems = JSON.parse(localStorage.getItem('items')) || []; allParties = JSON.parse(localStorage.getItem('parties')) || [];
+    allSales = JSON.parse(localStorage.getItem('sales')) || []; allPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
+    allTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
+}
+
+function setupFilters() {
+    const selectedReport = reportSelector.value;
+    dateFilters.style.display = 'none';
+    partyFilter.style.display = 'none';
+    document.getElementById('balance-summary').innerHTML = '';
+    
+    if (selectedReport === 'sales') {
+        dateFilters.style.display = 'flex';
+        // Set default dates to the current month
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        startDateEl.value = firstDay.toISOString().split('T')[0];
+        endDateEl.value = today.toISOString().split('T')[0];
+    } else if (selectedReport === 'ledger') {
+        partyFilter.style.display = 'block';
+        const companyParties = allParties.filter(p => p.companyId == activeCompanyId);
+        document.getElementById('party-selector-ledger').innerHTML = '<option value="">-- Select Party --</option>';
+        companyParties.forEach(p => document.getElementById('party-selector-ledger').innerHTML += `<option value="${p.id}">${p.name}</option>`);
+    }
+}
+
+function generateReport() {
+    const selectedReport = reportSelector.value;
+    document.querySelector('#report-table tbody').innerHTML = '';
+    document.getElementById('balance-summary').innerHTML = '';
+    if (selectedReport === 'sales') generateSalesReport();
+    else if (selectedReport === 'stock') generateStockReport();
+    else if (selectedReport === 'ledger') generateLedgerReport();
+}
+
+function generateSalesReport() {
+    document.getElementById('report-title').textContent = 'Sales Report';
+    document.querySelector('#report-table thead').innerHTML = '<tr><th>Date</th><th>Customer</th><th>Amount</th></tr>';
+    
+    const startDate = new Date(startDateEl.value);
+    const endDate = new Date(endDateEl.value);
+    endDate.setHours(23, 59, 59, 999); // Include all of the end day
+
+    const filteredSales = allSales.filter(s => {
+        const saleDate = new Date(s.date);
+        return s.companyId == activeCompanyId && saleDate >= startDate && saleDate <= endDate;
+    });
+
+    let totalSales = 0;
+    filteredSales.forEach(sale => {
+        const party = allParties.find(p => p.id == sale.partyId);
+        document.querySelector('#report-table tbody').innerHTML += `<tr><td>${new Date(sale.date).toLocaleDateString()}</td><td>${party ? party.name : 'N/A'}</td><td>${sale.totalAmount.toFixed(2)}</td></tr>`;
+        totalSales += sale.totalAmount;
+    });
+    
+    // Show total at the bottom
+    document.getElementById('balance-summary').textContent = `Total Sales: ₹${totalSales.toFixed(2)}`;
+}
+
+// All other functions (generateStockReport, generateLedgerReport, etc.) remain the same.
+function generateStockReport(){document.getElementById("report-title").textContent="Stock Report",document.querySelector("#report-table thead").innerHTML="<tr><th>Item Name</th><th>Current Stock</th></tr>";const e=allItems.filter(e=>e.companyId==activeCompanyId);e.forEach(e=>{document.querySelector("#report-table tbody").innerHTML+=`<tr><td>${e.name}</td><td>${e.stock}</td></tr>`})}
+function generateLedgerReport(){const e=document.getElementById("party-selector-ledger").value;if(!e)return void alert("Please select a party.");const t=allParties.find(t=>t.id==e);document.getElementById("report-title").textContent=`Ledger for ${t.name}`,document.querySelector("#report-table thead").innerHTML="<tr><th>Date</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>";let o=0;const a=[];allSales.filter(t=>t.companyId==activeCompanyId&&t.partyId==e).forEach(e=>a.push({date:e.date,type:"Sale",id:e.id,amount:e.totalAmount})),allPurchases.filter(t=>t.companyId==activeCompanyId&&t.partyId==e).forEach(e=>a.push({date:e.date,type:"Purchase",id:e.id,amount:e.totalAmount})),allTransactions.filter(t=>t.companyId==activeCompanyId&&t.partyId==e).forEach(e=>a.push({date:e.date,type:e.type,amount:e.amount})),a.sort((e,t)=>new Date(e.date)-new Date(t.date));let r="";a.forEach(e=>{let a=0,l=0,n="";"Customer"===t.type?"Sale"===e.type?(a=e.amount,o+=a,n=`Sale Bill #${e.id}`):"PaymentIn"===e.type&&(l=e.amount,o-=l,n="Payment Received"):"Supplier"===t.type&&("Purchase"===e.type?(l=e.amount,o-=l,n=`Purchase Bill #${e.id}`):"PaymentOut"===e.type&&(a=e.amount,o+=a,n="Payment Made")),(a>0||l>0)&&(r+=`<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${n}</td><td>${a>0?a.toFixed(2):"-"}</td><td>${l>0?l.toFixed(2):"-"}</td><td>${o.toFixed(2)}</td></tr>`)}),document.querySelector("#report-table tbody").innerHTML=r;let l=`Closing Balance: ₹${Math.abs(o).toFixed(2)}`;o>0?l+=" (To Receive)":o<0?l+=" (To Pay)":l="Closing Balance: ₹0.00",document.getElementById("balance-summary").textContent=l}
+companySwitcher.addEventListener('change',()=>{activeCompanyId=companySwitcher.value,localStorage.setItem("activeCompanyId",activeCompanyId),loadData(),setupFilters(),document.querySelector("#report-table tbody").innerHTML="",document.getElementById("report-title").textContent="",document.getElementById("balance-summary").innerHTML=""});
+reportSelector.addEventListener('change',setupFilters);
+generateReportBtn.addEventListener('click',generateReport);
+</script>
+</body>
+</html>

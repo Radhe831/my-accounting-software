@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Challans</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 5px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .transactions-table { width: 100%; border-collapse: collapse; background-color: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .transactions-table th, .transactions-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>Delivery Challans</h1>
+        <a href="create_delivery_challan.html" target="content-frame" class="btn btn-primary">+ Add Delivery Challan</a>
+    </div>
+    <table class="transactions-table">
+        <thead>
+            <tr><th>Date</th><th>Challan No</th><th>Party Name</th><th>Total Items</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="challan-list-body"></tbody>
+    </table>
+</div>
+
+<script>
+    let activeCompanyId = null;
+    document.addEventListener('DOMContentLoaded', function () {
+        activeCompanyId = localStorage.getItem('activeCompanyId');
+        if (!activeCompanyId) { return; }
+        loadChallans();
+    });
+
+    function loadChallans() {
+        const allChallans = JSON.parse(localStorage.getItem('deliveryChallans')) || [];
+        const allParties = JSON.parse(localStorage.getItem('parties')) || [];
+        const companyChallans = allChallans.filter(c => c.companyId == activeCompanyId);
+        const tableBody = document.getElementById('challan-list-body');
+        tableBody.innerHTML = '';
+        
+        companyChallans.forEach(challan => {
+            const party = allParties.find(p => p.id == challan.partyId);
+            const totalItems = challan.items.reduce((sum, item) => sum + item.qty, 0);
+            
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${new Date(challan.date).toLocaleDateString()}</td>
+                    <td>${challan.id}</td>
+                    <td>${party ? party.name : 'N/A'}</td>
+                    <td>${totalItems}</td>
+                    <td>
+                        <a href="create_delivery_challan.html?id=${challan.id}" class="btn btn-secondary">Edit</a>
+                        <button class="btn btn-danger" onclick="deleteChallan('${challan.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    function deleteChallan(id) {
+        if (!confirm('Are you sure you want to delete this challan? This will add the stock back.')) return;
+        
+        let allChallans = JSON.parse(localStorage.getItem('deliveryChallans')) || [];
+        let allItems = JSON.parse(localStorage.getItem('items')) || [];
+        const challanToDelete = allChallans.find(c => c.id === id);
+
+        if (challanToDelete) {
+            // Add stock back
+            challanToDelete.items.forEach(challanItem => {
+                const itemIndex = allItems.findIndex(i => i.id == challanItem.itemId);
+                if (itemIndex > -1) {
+                    allItems[itemIndex].stock += challanItem.qty;
+                }
+            });
+            localStorage.setItem('items', JSON.stringify(allItems));
+
+            // Remove challan
+            allChallans = allChallans.filter(c => c.id !== id);
+            localStorage.setItem('deliveryChallans', JSON.stringify(allChallans));
+            
+            loadChallans();
+        }
+    }
+</script>
+</body>
+</html>

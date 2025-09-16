@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Management</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-left: 5px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        #party-form-container { display: none; margin-top: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        select, input[type="text"], input[type="tel"] { width: 100%; padding: 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
+        .form-group { margin-bottom: 10px; }
+        .actions-cell { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="toolbar">
+        <h1>Party Management</h1>
+        <div><label><b>Select Firm:</b> </label><select id="company-switcher"></select></div>
+    </div>
+    <button id="show-party-form-btn" class="btn btn-primary">Add New Party</button>
+    <div id="party-form-container">
+        <h2 id="party-form-title">New Party</h2>
+        <form id="party-form">
+            <input type="hidden" id="party_id">
+            <div class="form-group"><input type="text" id="party_name" placeholder="Party Name" required></div>
+            <div class="form-group">
+                 <select id="party_type" required>
+                    <option value="">-- Select Party Type --</option>
+                    <option value="Customer">Customer</option>
+                    <option value="Supplier">Supplier</option>
+                </select>
+            </div>
+            <div class="form-group"><input type="tel" id="party_contact" placeholder="Contact Number"></div>
+            <div class="form-group"><input type="text" id="party_gstin" placeholder="GST Number"></div>
+            <button type="submit" class="btn btn-primary">Save Party</button>
+            <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display:none;">Cancel</button>
+        </form>
+    </div>
+    <table id="parties-table">
+        <thead><tr><th>Party Name</th><th>Type</th><th>Contact</th><th>GST Number</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script>
+    let activeCompanyId = null;
+    const companySwitcher = document.getElementById('company-switcher');
+    const partiesTableBody = document.querySelector('#parties-table tbody');
+    const showPartyFormBtn = document.getElementById('show-party-form-btn');
+    const partyFormContainer = document.getElementById('party-form-container');
+    const partyForm = document.getElementById('party-form');
+    const partyFormTitle = document.getElementById('party-form-title');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    let allParties = [], allSales = [], allPurchases = [], allTransactions = [], allCreditNotes = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const companies = JSON.parse(localStorage.getItem('companies')) || [];
+        activeCompanyId = localStorage.getItem('activeCompanyId') || (companies.length > 0 ? companies.id : null);
+        companySwitcher.innerHTML = '<option value="">-- Select Firm --</option>';
+        companies.forEach(c => { companySwitcher.innerHTML += `<option value="${c.id}">${c.company_name}</option>`; });
+        if (activeCompanyId) companySwitcher.value = activeCompanyId;
+        loadAllData();
+        loadParties();
+    });
+
+    function loadAllData() {
+        allParties = JSON.parse(localStorage.getItem('parties')) || [];
+        allSales = JSON.parse(localStorage.getItem('sales')) || [];
+        allPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
+        allTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        allCreditNotes = JSON.parse(localStorage.getItem('creditNotes')) || []; // Load Credit Notes
+    }
+
+    function calculatePartyBalance(partyId, partyType) {
+        let balance = 0;
+        
+        if (partyType === 'Customer') {
+            const salesTotal = allSales.filter(s => s.partyId == partyId).reduce((sum, s) => sum + s.totalAmount, 0);
+            const paymentsTotal = allTransactions.filter(t => t.partyId == partyId && t.type === 'PaymentIn').reduce((sum, t) => sum + t.amount, 0);
+            const creditNotesTotal = allCreditNotes.filter(cn => cn.partyId == partyId).reduce((sum, cn) => sum + cn.totalAmount, 0);
+            balance = salesTotal - paymentsTotal - creditNotesTotal;
+        } else if (partyType === 'Supplier') {
+            const purchasesTotal = allPurchases.filter(p => p.partyId == partyId).reduce((sum, p) => sum + p.totalAmount, 0);
+            const paymentsTotal = allTransactions.filter(t => t.partyId == partyId && t.type === 'PaymentOut').reduce((sum, t) => sum + t.amount, 0);
+            balance = purchasesTotal - paymentsTotal;
+        }
+        return balance;
+    }
+
+    function loadParties() {
+        if (!activeCompanyId) {
+            partiesTableBody.innerHTML = '<tr><td colspan="5">Please select a firm first.</td></tr>';
+            return;
+        }
+        
+        loadAllData();
+        
+        const companyParties = allParties.filter(party => party.companyId == activeCompanyId);
+        partiesTableBody.innerHTML = '';
+        
+        if (companyParties.length === 0) {
+            partiesTableBody.innerHTML = '<tr><td colspan="5">No parties in this firm.</td></tr>';
+        } else {
+            companyParties.forEach(party => {
+                const balance = calculatePartyBalance(party.id, party.type);
+                const balanceText = (balance > 0 ? `To Receive: ₹${balance.toFixed(2)}` : (balance < 0 ? `To Pay: ₹${Math.abs(balance).toFixed(2)}` : 'Settled'));
+
+                partiesTableBody.innerHTML += `
+                    <tr>
+                        <td>${party.name}</td>
+                        <td>${party.type}</td>
+                        <td>${party.contact || '-'}</td>
+                        <td>${party.gstin || '-'}</td>
+                        <td class="actions-cell">
+                            <button class="btn btn-secondary" onclick="editParty(${party.id})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteParty(${party.id})">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+    }
+
+    function editParty(id) {
+        const partyToEdit = allParties.find(party => party.id === id);
+        if (!partyToEdit) return;
+
+        partyFormContainer.style.display = 'block';
+        partyFormTitle.textContent = 'Edit Party';
+        document.getElementById('party_id').value = partyToEdit.id;
+        document.getElementById('party_name').value = partyToEdit.name;
+        document.getElementById('party_type').value = partyToEdit.type;
+        document.getElementById('party_contact').value = partyToEdit.contact;
+        document.getElementById('party_gstin').value = partyToEdit.gstin;
+        cancelBtn.style.display = 'inline-block';
+        showPartyFormBtn.style.display = 'none';
+    }
+
+    partyForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!activeCompanyId) { alert('Please select a firm first!'); return; }
+        
+        const partyId = document.getElementById('party_id').value;
+        const partyData = {
+            name: document.getElementById('party_name').value,
+            type: document.getElementById('party_type').value,
+            contact: document.getElementById('party_contact').value,
+            gstin: document.getElementById('party_gstin').value,
+            companyId: parseInt(activeCompanyId)
+        };
+
+        if (partyId) { // Editing existing party
+            const partyIndex = allParties.findIndex(p => p.id == partyId);
+            if (partyIndex > -1) {
+                allParties[partyIndex] = { ...allParties[partyIndex], ...partyData };
+            }
+        } else { // Creating new party
+            partyData.id = Date.now();
+            allParties.push(partyData);
+        }
+
+        localStorage.setItem('parties', JSON.stringify(allParties));
+        closeForm();
+        loadParties();
+    });
+
+    function deleteParty(id) {
+        if (confirm('Are you sure you want to delete this party?')) {
+            allParties = allParties.filter(party => party.id != id);
+            localStorage.setItem('parties', JSON.stringify(allParties));
+            loadParties();
+        }
+    }
+    
+    function closeForm() {
+        partyForm.reset();
+        document.getElementById('party_id').value = '';
+        formContainer.style.display = 'none';
+        partyFormTitle.textContent = 'New Party';
+        cancelBtn.style.display = 'none';
+        showPartyFormBtn.style.display = 'inline-block';
+    }
+
+    showPartyFormBtn.addEventListener('click', () => {
+        closeForm();
+        partyFormTitle.textContent = 'New Party';
+        formContainer.style.display = 'block';
+    });
+    
+    cancelBtn.addEventListener('click', closeForm);
+
+    companySwitcher.addEventListener('change', () => {
+        activeCompanyId = companySwitcher.value;
+        localStorage.setItem('activeCompanyId', activeCompanyId);
+        loadParties();
+    });
+</script>
+</body>
+</html>
+

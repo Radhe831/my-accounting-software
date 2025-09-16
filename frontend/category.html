@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Category Management</title>
+<style>
+  body {font-family: system-ui, sans-serif; background: #f8f9fa; margin: 0; padding: 0;}
+  .container {
+    max-width: 1300px; margin: 34px auto; background: white;
+    border-radius: 14px; box-shadow: 0 4px 26px rgb(0 0 0 / 0.12); padding: 24px;
+  }
+  .main-flex {display: flex; gap: 12px;}
+  .sidebar {
+    width: 340px; background: #faffff; border-radius: 12px;
+    border: 1px solid #ced4e5; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 15px 20px; border-bottom: 1px solid #cfd8e7;
+    display: flex; gap: 12px; align-items: center;
+  }
+  .btn-add {
+    background: #f43261; border: none; color: white;
+    font-weight: 600; border-radius: 8px; padding: 9px 21px;
+    cursor: pointer; font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  .btn-add:hover {
+    background: #c7244d;
+  }
+  .sidebar-header input {
+    flex: 1; padding: 8px 11px; font-size: 1rem;
+    font-weight: 500; border-radius: 8px; border: 1px solid #bdc9d6;
+    background: #f8fbff;
+  }
+  ul.category-list {
+    list-style-type: none; margin: 0; padding-left: 0;
+    height: 480px; overflow-y: auto;
+  }
+  ul.category-list li {
+    padding: 13px 18px; cursor: pointer;
+    border-bottom: 1px solid #e0e8f5;
+    font-size: 15px; color: #364152;
+    font-weight: 600;
+    display: flex; justify-content: space-between;
+    user-select: none;
+  }
+  ul.category-list li.selected, ul.category-list li:hover {
+    background-color: #f9e7ed; color: #e56166;
+  }
+  .item-counter {
+    background-color: #f2a5ac; color: white;
+    border-radius: 999px; padding: 0 11px;
+    font-size: 12px; line-height: 18px; user-select: none;
+  }
+  .main-panel {
+    flex-grow: 1; padding: 26px 34px; background: #fbfdff;
+    border-radius: 10px; box-shadow: 0 0 21px rgb(53 147 210 / 12%);
+  }
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 22px;
+  }
+  .panel-header h2 {
+    letter-spacing: 1.3px; font-weight: 700; color: #234f76;
+  }
+  .panel-header .btn-move {
+    cursor: pointer; background-color: #2563eb; color: white;
+    border-radius: 7px; border: none; font-weight: 700;
+    font-size: 1rem; padding: 10px 26px;
+    transition: background-color 0.3s ease;
+  }
+  .panel-header .btn-move:hover {
+    background-color: #154ea1;
+  }
+  .search-box {
+    margin-bottom: 14px;
+  }
+  .search-box input {
+    width: 100%; font-size: 1rem; padding: 8px 14px;
+    border: 1px solid #bbcadf; border-radius: 8px;
+    outline: none;
+  }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 15px;
+  }
+  table th, table td {
+    padding: 13px 18px; border-bottom: 1px solid #e8f1fb;
+  }
+  table th {
+    font-weight: 700; color: #2563eb;
+  }
+  table tr:hover {
+    background-color: #e7f2fd;
+  }
+  /* Modal Styles */
+  #addCatModal {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh; background: rgba(0,0,0,0.2);
+    z-index: 3000;
+  }
+  #addCatModal .modal-box {
+    background: white; width: 360px; max-width: 90%;
+    margin: 12vh auto; padding: 30px 28px; border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.25);
+    position: relative;
+  }
+  #addCatModal .modal-box input {
+    width: 100%; padding: 10px 14px; font-size: 1rem;
+    border: 1px solid #dadde6; border-radius: 7px;
+    margin-top: 14px; font-weight: 600; color: #5a5e70;
+  }
+  #addCatModal .modal-box button {
+    margin-top: 24px; padding: 12px 0; width: 100%;
+    border-radius: 25px; background-color: #f42a57;
+    color: white; cursor: pointer; font-weight: 700;
+    font-size: 1.1rem; border: none;
+    transition: background-color 0.3s ease;
+  }
+  #addCatModal .modal-box button:hover {
+    background-color: #a71027;
+  }
+  #addCatModal .close-x {
+    position: absolute; top: 14px; right: 18px;
+    background: none; border: none; font-size: 22px;
+    cursor: pointer; color:#7a7a7a;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn" onclick="window.location.href='products.html'">PRODUCTS</button>
+    <button class="tab-btn" onclick="window.location.href='services.html'">SERVICES</button>
+    <button class="tab-btn active" onclick="showTab('Category')">CATEGORY</button>
+    <button class="tab-btn" onclick="window.location.href='units.html'">UNITS</button>
+  </div>
+
+  <div id="Category" class="tab-panel active">
+    <div class="main-flex">
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <button class="btn-add" onclick="showAddCatModal()">+ Add Category</button>
+          <input type="text" placeholder="Search categories..." onkeyup="searchList(this.value, 'categoryList')" />
+        </div>
+        <ul class="category-list" id="categoryList">
+          <li class="selected">Items not in any Category <span class="item-counter">21</span></li>
+          <li>Computer <span class="item-counter">411</span></li>
+          <li>Printer <span class="item-counter">244</span></li>
+        </ul>
+      </div>
+      <div class="main-panel">
+        <div class="panel-header">
+          <h2 id="categoryTitle">ITEMS NOT IN ANY CATEGORY</h2>
+          <button class="btn-move" onclick="moveToCategory()">Move To This Category</button>
+        </div>
+        <div class="search-box">
+          <input type="text" placeholder="Search items..." onkeyup="searchList(this.value, 'itemsTableBody')" />
+        </div>
+        <table>
+          <thead>
+            <tr><th>NAME</th><th>QUANTITY</th><th>STOCK VALUE</th></tr>
+          </thead>
+          <tbody id="itemsTableBody">
+            <tr><td>05 AMP CP PLUS</td><td>0</td><td>₹0.00</td></tr>
+            <tr><td>1230</td><td>0</td><td>₹0.00</td></tr>
+            <tr><td>88</td><td>0</td><td>₹0.00</td></tr>
+            <tr><td>88A PCR</td><td>0</td><td>₹0.00</td></tr>
+            <tr><td>CAMERA 5MP IP</td><td>0</td><td>₹0.00</td></tr>
+            <tr><td>CANON INK 70 BK</td><td>1</td><td>₹576.27</td></tr>
+            <tr><td>GRAPHIC CARD PCI 710</td><td>1</td><td>₹2,700.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Category Modal -->
+  <div id="addCatModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.3); z-index:3000;">
+    <div style="background:#fff; max-width:370px; margin:12vh auto; padding:30px 28px; border-radius:12px; position:relative; box-shadow:0 0 26px rgba(44,57,74,0.5);">
+      <button class="close-x" onclick="closeAddCatModal()">×</button>
+      <h3>Add Category</h3>
+      <input id="newCategoryName" type="text" placeholder="Enter Category Name" style="width:100%; padding:10px 15px; margin-top:14px; font-weight:600; font-size:1rem; border:1px solid #ced4e6; border-radius:6px;" />
+      <button onclick="addCategory()" style="width:100%; margin-top:22px; padding:12px 0; background:#f4305d; color:#fff; font-weight:700; font-size:1.1rem; border:none; border-radius:24px; cursor:pointer;">Create</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showAddCatModal() {
+    document.getElementById('addCatModal').style.display = 'block';
+  }
+  function closeAddCatModal() {
+    document.getElementById('addCatModal').style.display = 'none';
+  }
+  function addCategory() {
+    const catName = document.getElementById('newCategoryName').value.trim();
+    if (!catName) {
+      alert('Please enter category name');
+      return;
+    }
+    alert('New category "' + catName + '" created! (Demo)');
+    closeAddCatModal();
+    // TODO: Add to category list dynamically here
+  }
+  function moveToCategory() {
+    alert('Move to this category clicked! (Demo)');
+  }
+  function searchList(query, listId) {
+    const filter = query.toLowerCase();
+    const list = document.getElementById(listId);
+    Array.from(list.children).forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(filter) ? "" : "none";
+    });
+  }
+</script>
+</body>
+</html>
