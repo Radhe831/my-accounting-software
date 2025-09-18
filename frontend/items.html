@@ -1,222 +1,345 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Items Section - Departments On Top</title>
-    <style>
-        body {font-family: system-ui,sans-serif; background: #f8f9fa; margin:0;}
-        .container {max-width: 1500px; margin: 25px auto; background:#fff; border-radius: 13px; box-shadow: 0 6px 36px #0002; padding:10px 0 35px 0;}
-        /* Department Tabs */
-        .tabs {display:flex; gap:35px; border-bottom:3px solid #e8ecfa; margin:10px 0 20px 0;}
-        .tab-btn {background:none; border:none; cursor:pointer;padding:20px 22px 14px 22px; font-size:1.09rem; font-weight:600; color:#6b759a;border-bottom:3px solid transparent;}
-        .tab-btn.active {color:#1b52a9;border-bottom:3px solid #1b52a9;}
-        /* Main Layout */
-        .master-flex {display: flex;}
-        .sidebar {
-            width: 315px; background: #fafdff; border-right:1.2px solid #e0e9f0; display: flex; flex-direction:column; padding: 24px 0 22px 22px; box-shadow:0 2px 18px #0001;
-        }
-        .sidebar-header {display:flex; gap: 10px; margin-bottom:8px; align-items:center;}
-        .btn-add {
-            background: #fea500; color: #fff; border: none; border-radius: 5px; font-size: 15px; padding:7px 22px;
-            font-weight: 600; cursor:pointer; transition: filter 0.2s;
-        }
-        .btn-add:hover {filter: brightness(93%);}
-        .sidebar-header input {
-            flex:1; padding: 8px 12px; border-radius:5px; border: 1px solid #dde3ed; font-size: 1rem; background: #f3f7fa;
-        }
-        .productlist {
-            margin: 10px 0 0 0; padding: 0; flex: 1 1 auto; overflow-y: auto; list-style: none;
-        }
-        .productlist li {
-            cursor: pointer; padding: 11px 14px; border-radius: 7px; margin:2px 5px; user-select: none; color: #283c5e; font-size: 15px; transition: background 0.15s;
-        }
-        .productlist li.selected, .productlist li:hover {background: #dde8fe; color:#1d69c2; font-weight: 600;}
-        .main-panel {flex: 1 1 auto; padding: 0 32px 0 22px;}
-        .prod-header {
-            display:flex; align-items: end; border-bottom:2px solid #e2e5f3; background:#f1f6fd;
-            padding: 26px 10px 16px 0; margin-bottom: 0px; position: relative;
-        }
-        .header-info {flex:1 1 auto; min-width: 220px;}
-        .prod-title {font-size: 1.36em; font-weight:700; color: #1c3658;}
-        .prod-vals { font-size:15px; color:#0f7342; margin: 13px 0 0 5px;}
-        .prod-vals span {font-weight: 600; color:#31734a;}
-        .stock-info { margin-right: 22px; color:#306033; font-size:15px;}
-        .btn-adjust {
-            background: #185adb; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight:700; cursor:pointer; padding: 10px 30px;
-            margin-left: 16px; margin-bottom: 11px; transition: background 0.2s;
-        }
-        .btn-adjust:hover {background: #1445ac;}
-        .trans-table {width:100%; border-collapse: collapse; font-size: 15px; margin-top: 16px;}
-        .trans-table th, .trans-table td {padding: 14px 12px; border-bottom: 1px solid #e5edfa;}
-        .trans-table th {color: #185adb; font-weight: 700;}
-        tr:hover {background: #e8f2ff;}
-        .trans-table .actions a { color: #1b52a9; text-decoration: none; font-weight: 600; margin: 0 5px; }
-        .trans-table .actions a:hover { text-decoration: underline; }
-        /* Adjust Modal */
-        #adjustModal {display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:#0002; z-index:2000;}
-        #adjustModal .modal-content {background:#fff; border-radius:10px; margin:10vh auto; max-width:370px; padding:28px 27px;
-            box-shadow:0 6px 24px #0003; font-size: 16px;}
-        #adjustModal label {display:block;font-size: 1em; margin:0 0 14px 0;}
-        #adjustModal input {margin-left:8px;padding:6px;width:168px;border-radius:5px;border:1px solid #bacef1;}
-        .modal-btns {margin-top:22px;text-align:right;}
-        .modal-btns button {padding:8px 18px;font-size:16px;border-radius:6px;border:none;}
-        .modal-btns .save-btn {background:#2563eb;color:#fff;margin-left:11px;}
-        .modal-btns .cancel-btn {background:#e2e9f4;color:#333;}
-    </style>
+  <meta charset="UTF-8">
+  <title>Items Section - Departments On Top</title>
+  <style>
+    body {font-family: system-ui,sans-serif; background: #f8f9fa; margin:0;}
+    .container {max-width: 1500px; margin: 25px auto; background:#fff; border-radius: 13px; box-shadow: 0 6px 36px #0002; padding:10px 0 35px 0;}
+    /* Department Tabs */
+    .tabs {display:flex; gap:35px; border-bottom:3px solid #e8ecfa; margin:10px 0 20px 0;}
+    .tab-btn {background:none; border:none; cursor:pointer;padding:20px 22px 14px 22px; font-size:1.09rem; font-weight:600; color:#6b759a;border-bottom:3px solid transparent;}
+    .tab-btn.active {color:#1b52a9;border-bottom:3px solid #1b52a9;}
+    /* Main Layout */
+    .master-flex {display: flex;}
+    .sidebar {
+      width: 315px; background: #fafdff; border-right:1.2px solid #e0e9f0; display: flex; flex-direction:column; padding: 24px 0 22px 22px; box-shadow:0 2px 18px #0001;
+    }
+    .sidebar-header {display:flex; gap: 10px; margin-bottom:8px; align-items:center;}
+    .btn-add {
+      background: #fea500; color: #fff; border: none; border-radius: 5px; font-size: 15px; padding:7px 22px;
+      font-weight: 600; cursor:pointer; transition: filter 0.2s;
+    }
+    .btn-add:hover {filter: brightness(93%);}
+    .sidebar-header input {
+      flex:1; padding: 8px 12px; border-radius:5px; border: 1px solid #dde3ed; font-size: 1rem; background: #f3f7fa;
+    }
+    .productlist {
+      margin: 10px 0 0 0; padding: 0; flex: 1 1 auto; overflow-y: auto; list-style: none;
+    }
+    .productlist li {
+      cursor: pointer; padding: 11px 14px; border-radius: 7px; margin:2px 5px; user-select: none; color: #283c5e; font-size: 15px; transition: background 0.15s;
+    }
+    .productlist li.selected, .productlist li:hover {background: #dde8fe; color:#1d69c2; font-weight: 600;}
+    .main-panel {flex: 1 1 auto; padding: 0 32px 0 22px;}
+    .prod-header {
+      display:flex; align-items: end; border-bottom:2px solid #e2e5f3; background:#f1f6fd;
+      padding: 26px 10px 16px 0; margin-bottom: 0px; position: relative;
+    }
+    .header-info {flex:1 1 auto; min-width: 220px;}
+    .prod-title {font-size: 1.36em; font-weight:700; color: #1c3658;}
+    .prod-vals { font-size:15px; color:#0f7342; margin: 13px 0 0 5px;}
+    .prod-vals span {font-weight: 600; color:#31734a;}
+    .stock-info { margin-right: 22px; color:#306033; font-size:15px;}
+    .btn-adjust {
+      background: #185adb; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight:700; cursor:pointer; padding: 10px 30px;
+      margin-left: 16px; margin-bottom: 11px; transition: background 0.2s;
+    }
+    .btn-adjust:hover {background: #1445ac;}
+    .trans-table {width:100%; border-collapse: collapse; font-size: 15px; margin-top: 16px;}
+    .trans-table th, .trans-table td {padding: 14px 12px; border-bottom: 1px solid #e5edfa;}
+    .trans-table th {color: #185adb; font-weight: 700;}
+    tr:hover {background: #e8f2ff;}
+    .trans-table .actions a { color: #1b52a9; text-decoration: none; font-weight: 600; margin: 0 5px; }
+    .trans-table .actions a:hover { text-decoration: underline; }
+    /* Adjust Modal */
+    #adjustModal {display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:#0002; z-index:2000;}
+    #adjustModal .modal-content {background:#fff; border-radius:10px; margin:10vh auto; max-width:370px; padding:28px 27px;
+      box-shadow:0 6px 24px #0003; font-size: 16px;}
+    #adjustModal label {display:block;font-size: 1em; margin:0 0 14px 0;}
+    #adjustModal input {margin-left:8px;padding:6px;width:168px;border-radius:5px;border:1px solid #bacef1;}
+    .modal-btns {margin-top:22px;text-align:right;}
+    .modal-btns button {padding:8px 18px;font-size:16px;border-radius:6px;border:none;}
+    .modal-btns .save-btn {background:#2563eb;color:#fff;margin-left:11px;}
+    .modal-btns .cancel-btn {background:#e2e9f4;color:#333;}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="tabs">
-            <button class="tab-btn active" id="tab-products" onclick="showTab('Products')">PRODUCTS</button>
-            <button class="tab-btn" id="tab-services" onclick="showTab('Services')">SERVICES</button>
-            <button class="tab-btn" id="tab-category" onclick="showTab('Category')">CATEGORY</button>
-            <button class="tab-btn" id="tab-units" onclick="showTab('Units')">UNITS</button>
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-products" onclick="showTab('Products')">PRODUCTS</button>
+      <button class="tab-btn" id="tab-services" onclick="showTab('Services')">SERVICES</button>
+      <button class="tab-btn" id="tab-category" onclick="showTab('Category')">CATEGORY</button>
+      <button class="tab-btn" id="tab-units" onclick="showTab('Units')">UNITS</button>
+    </div>
+    
+    <!-- == Products Section == -->
+    <div id="Products" class="tab-panel active">
+      <div class="master-flex">
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <button class="btn-add" onclick="addProduct()">+ Add Item</button>
+            <input type="text" placeholder="Search products...">
+          </div>
+          <ul class="productlist" id="productList">
+            <li class="selected">005 BK INK</li>
+            <li>HP PRINTER CARTRIDGE</li>
+            <li>COMP TONER CARTRIDGE</li>
+          </ul>
         </div>
-        
-        <!-- == Products Section == -->
-        <div id="Products" class="tab-panel active">
-            <div class="master-flex">
-                <div class="sidebar">
-                    <div class="sidebar-header">
-                        <button class="btn-add" onclick="addProduct()">+ Add Item</button>
-                        <input type="text" placeholder="Search products...">
-                    </div>
-                    <ul class="productlist" id="productList">
-                        <li class="selected">005 BK INK</li>
-                        <li>HP PRINTER CARTRIDGE</li>
-                        <li>COMP TONER CARTRIDGE</li>
-                    </ul>
-                </div>
-                <div class="main-panel">
-                    <div class="prod-header">
-                        <div class="header-info">
-                            <div class="prod-title" id="prodTitle">005 BK INK</div>
-                            <div class="prod-vals">
-                                SALE PRICE: <span id="prodSale">₹0.00</span> &nbsp;&nbsp;|&nbsp;&nbsp; PURCHASE PRICE: <span id="prodPurchase">₹525.42</span>
-                            </div>
-                        </div>
-                        <div class="stock-info" id="stockInfo">STOCK QTY: <b>1</b></div>
-                        <button class="btn-adjust" onclick="showAdjustModal()">ADJUST ITEM</button>
-                    </div>
-                    <table class="trans-table">
-                        <thead>
-                            <tr><th>TYPE</th><th>INV/REF</th><th>NAME</th><th>DATE</th><th>QTY</th><th>PRICE/UNIT</th><th>STATUS</th><th>ACTIONS</th></tr>
-                        </thead>
-                        <tbody id="transBody">
-                            <tr>
-                                <td>Sale</td><td>G/M-246</td><td>Cash Sale</td><td>24/07/2025</td><td>1</td><td>₹750.00</td><td>Paid</td>
-                                <td class="actions"><a href="#" onclick="editTransaction('G/M-246')">Edit</a> | <a href="#" onclick="deleteTransaction('G/M-246')">Delete</a></td>
-                            </tr>
-                            <tr>
-                                <td>Sale</td><td>1863</td><td>Cash Sale</td><td>08/05/2025</td><td>1</td><td>₹830.00</td><td>Paid</td>
-                                <td class="actions"><a href="#" onclick="editTransaction('1863')">Edit</a> | <a href="#" onclick="deleteTransaction('1863')">Delete</a></td>
-                            </tr>
-                            <tr>
-                                <td>Opening</td><td>-</td><td>Opening Stock</td><td>01/04/2025</td><td>-1</td><td>-</td><td>-</td>
-                                <td class="actions"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="main-panel">
+          <div class="prod-header">
+            <div class="header-info">
+              <div class="prod-title" id="prodTitle">005 BK INK</div>
+              <div class="prod-vals">
+                SALE PRICE: <span id="prodSale">₹0.00</span> &nbsp;&nbsp;|&nbsp;&nbsp; PURCHASE PRICE: <span id="prodPurchase">₹525.42</span>
+              </div>
             </div>
+            <div class="stock-info" id="stockInfo">STOCK QTY: <b>1</b></div>
+            <button class="btn-adjust" onclick="showAdjustModal()">ADJUST ITEM</button>
+          </div>
+          <table class="trans-table">
+            <thead>
+              <tr><th>TYPE</th><th>INV/REF</th><th>NAME</th><th>DATE</th><th>QTY</th><th>PRICE/UNIT</th><th>STATUS</th><th>ACTIONS</th></tr>
+            </thead>
+            <tbody id="transBody">
+              <tr>
+                <td>Sale</td><td>G/M-246</td><td>Cash Sale</td><td>24/07/2025</td><td>1</td><td>₹750.00</td><td>Paid</td>
+                <td class="actions"><a href="#" onclick="editTransaction('G/M-246')">Edit</a> | <a href="#" onclick="deleteTransaction('G/M-246')">Delete</a></td>
+              </tr>
+              <tr>
+                <td>Sale</td><td>1863</td><td>Cash Sale</td><td>08/05/2025</td><td>1</td><td>₹830.00</td><td>Paid</td>
+                <td class="actions"><a href="#" onclick="editTransaction('1863')">Edit</a> | <a href="#" onclick="deleteTransaction('1863')">Delete</a></td>
+              </tr>
+              <tr>
+                <td>Opening</td><td>-</td><td>Opening Stock</td><td>01/04/2025</td><td>-1</td><td>-</td><td>-</td>
+                <td class="actions"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <!-- == Services Section == -->
-        <div id="Services" class="tab-panel" style="display:none;">
-            <div class="master-flex">
-                <div class="sidebar">
-                    <div class="sidebar-header">
-                        <button class="btn-add" onclick="addService()">+ Add Service</button>
-                        <input type="text" placeholder="Search services...">
-                    </div>
-                    <ul class="productlist" id="serviceList">
-                        <li class="selected">HP PRINTER REPAIRING</li>
-                        <li>INSTALLATION CHARGE</li>
-                    </ul>
-                </div>
-                <div class="main-panel">
-                    <div class="prod-header">
-                        <div class="header-info">
-                            <div class="prod-title" id="serviceTitle">HP PRINTER REPAIRING</div>
-                            <div class="prod-vals">SALE PRICE: <span id="serviceSale">₹0.00</span></div>
-                        </div>
-                    </div>
-                    <table class="trans-table">
-                        <thead>
-                            <tr><th>TYPE</th><th>INVOICE/REF. NO</th><th>NAME</th><th>DATE</th><th>ACTIONS</th></tr>
-                        </thead>
-                        <tbody id="serviceTransBody">
-                            <tr>
-                                <td>Sale</td><td>G/A-127</td><td>SUMIT</td><td>24/06/2025</td>
-                                <td class="actions"><a href="#">Edit</a> | <a href="#">Delete</a></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- == Category Section == -->
-        <div id="Category" class="tab-panel" style="display:none;">
-            <div style="padding:32px; color:#272;">Category department content goes here...</div>
-        </div>
-
-        <!-- == Units Section == -->
-        <div id="Units" class="tab-panel" style="display:none;">
-            <div style="padding:32px; color:#073;">Units department content goes here...</div>
-        </div>
+      </div>
     </div>
 
-    <!-- Adjust Modal -->
-    <div id="adjustModal">
-        <div class="modal-content">
-            <h3>Adjust Item</h3>
-            <label>Quantity: <input type="number" id="adjQty" value="1"></label>
-            <label>Price: <input type="number" id="adjPrice" value="525.42"></label>
-            <div class="modal-btns">
-                <button class="cancel-btn" onclick="closeAdjustModal()">Cancel</button>
-                <button class="save-btn" onclick="saveAdjust()">Save</button>
-            </div>
+    <!-- == Services Section == -->
+    <div id="Services" class="tab-panel" style="display:none;">
+      <div class="master-flex">
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <button class="btn-add" onclick="addService()">+ Add Service</button>
+            <input type="text" placeholder="Search services...">
+          </div>
+          <ul class="productlist" id="serviceList">
+            <li class="selected">HP PRINTER REPAIRING</li>
+            <li>INSTALLATION CHARGE</li>
+          </ul>
         </div>
+        <div class="main-panel">
+          <div class="prod-header">
+            <div class="header-info">
+              <div class="prod-title" id="serviceTitle">HP PRINTER REPAIRING</div>
+              <div class="prod-vals">SALE PRICE: <span id="serviceSale">₹0.00</span></div>
+            </div>
+          </div>
+          <table class="trans-table">
+            <thead>
+              <tr><th>TYPE</th><th>INVOICE/REF. NO</th><th>NAME</th><th>DATE</th><th>ACTIONS</th></tr>
+            </thead>
+            <tbody id="serviceTransBody">
+              <tr>
+                <td>Sale</td><td>G/A-127</td><td>SUMIT</td><td>24/06/2025</td>
+                <td class="actions"><a href="#">Edit</a> | <a href="#">Delete</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-<script>
+
+    <!-- == Category Section == -->
+    <div id="Category" class="tab-panel" style="display:none;">
+      <div style="padding:22px 28px;">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px;">
+          <input id="catSearch" type="text" placeholder="Search categories..." style="flex:1; padding:8px 12px; border:1px solid #dde3ed; border-radius:6px;">
+          <button id="btnCatAdd" class="btn-add" type="button">+ Add Category</button>
+        </div>
+
+        <table class="trans-table" style="margin-top:8px;">
+          <thead>
+            <tr>
+              <th style="width:60px;">#</th>
+              <th>Name</th>
+              <th style="width:180px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="catTbody">
+            <!-- filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="catModal" style="display:none; position:fixed; inset:0; background:#0002; z-index:2100; align-items:center; justify-content:center;">
+      <div style="background:#fff; width:360px; border-radius:10px; padding:18px 18px 16px; box-shadow:0 10px 28px rgba(0,0,0,.2);">
+        <h3 id="catModalTitle" style="margin:0 0 10px;">New Category</h3>
+        <label style="display:block; font-weight:600; margin-bottom:6px;">Name</label>
+        <input id="catName" type="text" placeholder="e.g. Ink, Printers, Services" style="width:100%; padding:9px 10px; border:1px solid #cfd8e3; border-radius:6px;">
+        <div id="catErr" style="color:#c00; min-height:18px; font-size:13px; margin-top:6px;"></div>
+        <div style="text-align:right; margin-top:12px;">
+          <button type="button" class="cancel-btn" onclick="closeCatModal()">Cancel</button>
+          <button type="button" class="save-btn" style="margin-left:10px;" onclick="saveCategory()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- == Units Section == -->
+    <div id="Units" class="tab-panel" style="display:none;">
+      <div style="padding:32px; color:#073;">Units department content goes here...</div>
+    </div>
+  </div>
+
+  <!-- Adjust Modal -->
+  <div id="adjustModal">
+    <div class="modal-content">
+      <h3>Adjust Item</h3>
+      <label>Quantity: <input type="number" id="adjQty" value="1"></label>
+      <label>Price: <input type="number" id="adjPrice" value="525.42"></label>
+      <div class="modal-btns">
+        <button class="cancel-btn" onclick="closeAdjustModal()">Cancel</button>
+        <button class="save-btn" onclick="saveAdjust()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
     function showTab(tab) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = "none");
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tab).style.display = "block";
-        document.getElementById('tab-' + tab.toLowerCase()).classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = "none");
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tab).style.display = "block";
+      document.getElementById('tab-' + tab.toLowerCase()).classList.add('active');
     }
 
     document.querySelectorAll('#productList li').forEach(li => {
-        li.onclick = function() {
-            document.querySelectorAll('#productList li').forEach(x => x.classList.remove('selected'));
-            this.classList.add('selected');
-        };
+      li.onclick = function() {
+        document.querySelectorAll('#productList li').forEach(x => x.classList.remove('selected'));
+        this.classList.add('selected');
+      };
     });
     
     document.querySelectorAll('#serviceList li').forEach(li => {
-        li.onclick = function() {
-            document.querySelectorAll('#serviceList li').forEach(x => x.classList.remove('selected'));
-            this.classList.add('selected');
-        };
+      li.onclick = function() {
+        document.querySelectorAll('#serviceList li').forEach(x => x.classList.remove('selected'));
+        this.classList.add('selected');
+      };
     });
 
     function addProduct() { window.location.href = "create_item.html?type=product"; }
     function addService() { window.location.href = "create_item.html?type=service"; }
 
     function editTransaction(invRef) {
-        alert(`Edit transaction with INV/REF: ${invRef}`);
+      alert(`Edit transaction with INV/REF: ${invRef}`);
     }
 
     function deleteTransaction(invRef) {
-        if (confirm(`Are you sure you want to delete transaction ${invRef}?`)) {
-            alert(`Deleting transaction ${invRef}... (This is a demo)`);
-        }
+      if (confirm(`Are you sure you want to delete transaction ${invRef}?`)) {
+        alert(`Deleting transaction ${invRef}... (This is a demo)`);
+      }
     }
 
     function showAdjustModal() {document.getElementById('adjustModal').style.display = 'block';}
     function closeAdjustModal() {document.getElementById('adjustModal').style.display = 'none';}
     function saveAdjust() {alert('Adjustment saved! (Demo only)'); closeAdjustModal();}
-</script>
+
+    // ===== Category logic (localStorage; replace with API later) =====
+    const CAT_KEY = 'inv_categories_v1';
+    let catEditingId = null;
+
+    function loadCats() {
+      try { return JSON.parse(localStorage.getItem(CAT_KEY)) || ['General']; }
+      catch { return ['General']; }
+    }
+    function saveCats(list) {
+      localStorage.setItem(CAT_KEY, JSON.stringify(list));
+    }
+    function renderCats(filter = '') {
+      const tbody = document.getElementById('catTbody');
+      const all = loadCats();
+      const q = filter.trim().toLowerCase();
+      const rows = all
+        .map((name, i) => ({ i, name }))
+        .filter(x => !q || x.name.toLowerCase().includes(q));
+      tbody.innerHTML = rows.map((r, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${escapeHtml(r.name)}</td>
+          <td class="actions">
+            <a href="#" onclick="editCat(${r.i}); return false;">Edit</a> |
+            <a href="#" onclick="delCat(${r.i}); return false;">Delete</a>
+          </td>
+        </tr>
+      `).join('');
+    }
+    function openCatModal(title, initial = '') {
+      document.getElementById('catModalTitle').textContent = title;
+      document.getElementById('catName').value = initial;
+      document.getElementById('catErr').textContent = '';
+      document.getElementById('catModal').style.display = 'flex';
+      setTimeout(() => document.getElementById('catName').focus(), 30);
+    }
+    function closeCatModal() {
+      document.getElementById('catModal').style.display = 'none';
+      catEditingId = null;
+    }
+    function saveCategory() {
+      const name = document.getElementById('catName').value.trim();
+      const err = document.getElementById('catErr');
+      if (!name) { err.textContent = 'Please enter a category name'; return; }
+      const list = loadCats();
+      const existsAt = list.findIndex(x => x.toLowerCase() === name.toLowerCase());
+      if (catEditingId === null) {
+        if (existsAt !== -1) { err.textContent = 'Category already exists'; return; }
+        list.push(name);
+      } else {
+        if (existsAt !== -1 && existsAt !== catEditingId) {
+          err.textContent = 'Category name already in use';
+          return;
+        }
+        list[catEditingId] = name;
+      }
+      list.sort((a,b)=> a.localeCompare(b));
+      saveCats(list);
+      closeCatModal();
+      renderCats(document.getElementById('catSearch').value);
+    }
+    function editCat(index) {
+      const list = loadCats();
+      catEditingId = index;
+      openCatModal('Edit Category', list[index]);
+    }
+    function delCat(index) {
+      const list = loadCats();
+      const name = list[index];
+      if (!confirm(`Delete category "${name}"?`)) return;
+      list.splice(index, 1);
+      if (list.length === 0) list.push('General');
+      saveCats(list);
+      renderCats(document.getElementById('catSearch').value);
+    }
+    document.getElementById('btnCatAdd').addEventListener('click', () => {
+      catEditingId = null;
+      openCatModal('New Category', '');
+    });
+    document.getElementById('catSearch').addEventListener('input', (e) => {
+      renderCats(e.target.value);
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!localStorage.getItem(CAT_KEY)) saveCats(['General']);
+      renderCats('');
+    });
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+  </script>
 </body>
 </html>
