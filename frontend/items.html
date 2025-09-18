@@ -193,24 +193,43 @@
       </div>
     </div>
 
-    <!-- == Units Section == -->
-    <div id="Units" class="tab-panel" style="display:none;">
-      <div style="padding:32px; color:#073;">Units department content goes here...</div>
+   <!-- == Units Section == -->
+<div id="Units" class="tab-panel" style="display:none;">
+  <div style="padding:22px 28px;">
+    <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px;">
+      <input id="unitSearch" type="text" placeholder="Search units (e.g., PCS, KG, LTR)..." style="flex:1; padding:8px 12px; border:1px solid #dde3ed; border-radius:6px;">
+      <button id="btnUnitAdd" class="btn-add" type="button">+ Add Unit</button>
     </div>
-  </div>
 
-  <!-- Adjust Modal -->
-  <div id="adjustModal">
-    <div class="modal-content">
-      <h3>Adjust Item</h3>
-      <label>Quantity: <input type="number" id="adjQty" value="1"></label>
-      <label>Price: <input type="number" id="adjPrice" value="525.42"></label>
-      <div class="modal-btns">
-        <button class="cancel-btn" onclick="closeAdjustModal()">Cancel</button>
-        <button class="save-btn" onclick="saveAdjust()">Save</button>
-      </div>
+    <table class="trans-table" style="margin-top:8px;">
+      <thead>
+        <tr>
+          <th style="width:60px;">#</th>
+          <th>Code</th>
+          <th style="width:180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="unitTbody">
+        <!-- filled by JS -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Unit Modal -->
+<div id="unitModal" style="display:none; position:fixed; inset:0; background:#0002; z-index:2100; align-items:center; justify-content:center;">
+  <div style="background:#fff; width:360px; border-radius:10px; padding:18px 18px 16px; box-shadow:0 10px 28px rgba(0,0,0,.2);">
+    <h3 id="unitModalTitle" style="margin:0 0 10px;">New Unit</h3>
+    <label style="display:block; font-weight:600; margin-bottom:6px;">Code</label>
+    <input id="unitCode" type="text" placeholder="e.g., PCS, KG, LTR" style="width:100%; padding:9px 10px; border:1px solid #cfd8e3; border-radius:6px; text-transform:uppercase;">
+    <div id="unitErr" style="color:#c00; min-height:18px; font-size:13px; margin-top:6px;"></div>
+    <div style="text-align:right; margin-top:12px;">
+      <button type="button" class="cancel-btn" onclick="closeUnitModal()">Cancel</button>
+      <button type="button" class="save-btn" style="margin-left:10px;" onclick="saveUnit()">Save</button>
     </div>
   </div>
+</div>
+
 
   <script>
     function showTab(tab) {
@@ -340,6 +359,101 @@
     function escapeHtml(s) {
       return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
+
+  // ===== Units logic (localStorage; replace with API later) =====
+  const UNIT_KEY = 'inv_units_v1';
+  let unitEditingId = null;
+
+  function loadUnits() {
+    try { return JSON.parse(localStorage.getItem(UNIT_KEY)) || ['PCS']; }
+    catch { return ['PCS']; }
+  }
+  function saveUnits(list) {
+    localStorage.setItem(UNIT_KEY, JSON.stringify(list));
+  }
+  function renderUnits(filter = '') {
+    const tbody = document.getElementById('unitTbody');
+    const all = loadUnits();
+    const q = filter.trim().toLowerCase();
+    const rows = all
+      .map((code, i) => ({ i, code }))
+      .filter(x => !q || x.code.toLowerCase().includes(q));
+    tbody.innerHTML = rows.map((r, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${escapeHtml(r.code)}</td>
+        <td class="actions">
+          <a href="#" onclick="editUnit(${r.i}); return false;">Edit</a> |
+          <a href="#" onclick="delUnit(${r.i}); return false;">Delete</a>
+        </td>
+      </tr>
+    `).join('');
+  }
+  function openUnitModal(title, initial = '') {
+    document.getElementById('unitModalTitle').textContent = title;
+    document.getElementById('unitCode').value = initial.toUpperCase();
+    document.getElementById('unitErr').textContent = '';
+    document.getElementById('unitModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('unitCode').focus(), 30);
+  }
+  function closeUnitModal() {
+    document.getElementById('unitModal').style.display = 'none';
+    unitEditingId = null;
+  }
+  function saveUnit() {
+    const code = document.getElementById('unitCode').value.trim().toUpperCase();
+    const err = document.getElementById('unitErr');
+    if (!code) { err.textContent = 'Please enter a unit code'; return; }
+    if (code.length > 6) { err.textContent = 'Unit code should be short (<= 6 chars)'; return; }
+
+    const list = loadUnits();
+    const existsAt = list.findIndex(x => x.toLowerCase() === code.toLowerCase());
+
+    if (unitEditingId === null) {
+      if (existsAt !== -1) { err.textContent = 'Unit already exists'; return; }
+      list.push(code);
+    } else {
+      if (existsAt !== -1 && existsAt !== unitEditingId) {
+        err.textContent = 'Unit code already in use';
+        return;
+      }
+      list[unitEditingId] = code;
+    }
+    list.sort((a,b)=> a.localeCompare(b));
+    saveUnits(list);
+    closeUnitModal();
+    renderUnits(document.getElementById('unitSearch').value);
+  }
+  function editUnit(index) {
+    const list = loadUnits();
+    unitEditingId = index;
+    openUnitModal('Edit Unit', list[index]);
+  }
+  function delUnit(index) {
+    const list = loadUnits();
+    const code = list[index];
+    if (!confirm(`Delete unit "${code}"?`)) return;
+    list.splice(index, 1);
+    if (list.length === 0) list.push('PCS'); // keep at least one
+    saveUnits(list);
+    renderUnits(document.getElementById('unitSearch').value);
+  }
+
+  // Handlers
+  document.getElementById('btnUnitAdd').addEventListener('click', () => {
+    unitEditingId = null;
+    openUnitModal('New Unit', '');
+  });
+  document.getElementById('unitSearch').addEventListener('input', (e) => {
+    renderUnits(e.target.value);
+  });
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem(UNIT_KEY)) saveUnits(['PCS']);
+    renderUnits('');
+  });
+
   </script>
 </body>
 </html>
