@@ -1,103 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Accounting Software</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 220px; background-color: #2c3e50; color: white; flex-shrink: 0; }
-        .sidebar h2 { text-align: center; color: #ecf0f1; margin-bottom: 30px; padding: 20px 0; }
-        .sidebar ul { list-style-type: none; padding: 0; }
-        .sidebar ul li a, .sidebar ul li > span { display: block; width: 100%; padding: 15px 20px; color: white; text-decoration: none; box-sizing: border-box; }
-        .sidebar ul li { border-bottom: 1px solid #34495e; cursor: pointer; transition: background-color 0.3s; }
-        .sidebar ul li.active, .sidebar ul li:hover { background-color: #34495e; }
-
-        .has-submenu > span { display: flex; justify-content: space-between; align-items: center; }
-        .has-submenu > span::after { content: '+'; font-size: 1.2em; }
-        .has-submenu.open > span::after { content: '−'; }
-        .submenu { list-style: none; padding-left: 0; display: none; background-color: #22303f; }
-        .submenu li a { padding-left: 40px; }
-
-        .right-section { display: flex; flex-direction: column; width: 100%; }
-        .top-bar { height: 60px; background-color: #fff; display: flex; align-items: center; justify-content: flex-end; padding: 0 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); z-index: 10; }
-        .top-bar .btn { padding: 8px 15px; border-radius: 5px; text-decoration: none; color: white; margin-left: 10px; font-weight: 500; }
-        .top-bar .btn-sale { background-color: #007bff; }
-        .top-bar .btn-purchase { background-color: #28a745; }
-        .main-content { padding: 20px; flex-grow: 1; overflow-y: auto; }
-        .main-content iframe { width: 100%; height: 100%; border: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Accounting Software</title>
+  <script>
+    // auth guard: લોગિન વગર સીધું index.html ખોલે તો login.html પર મોકલો
+    if (sessionStorage.getItem('auth') !== '1') {
+      window.location.href = 'login.html';
+    }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 220px; background-color: #2c3e50; color: white; flex-shrink: 0; }
+    .sidebar h2 { text-align: center; color: #ecf0f1; margin-bottom: 30px; padding: 20px 0; }
+    .sidebar ul { list-style-type: none; padding: 0; }
+    .sidebar ul li a, .sidebar ul li > span { display: block; width: 100%; padding: 15px 20px; color: white; text-decoration: none; box-sizing: border-box; }
+    .sidebar ul li { border-bottom: 1px solid #34495e; cursor: pointer; transition: background-color 0.3s; }
+    .sidebar ul li.active, .sidebar ul li:hover { background-color: #34495e; }
+    .has-submenu > span { display: flex; justify-content: space-between; align-items: center; }
+    .has-submenu > span::after { content: '+'; font-size: 1.2em; }
+    .has-submenu.open > span::after { content: '−'; }
+    .submenu { list-style: none; padding-left: 0; display: none; background-color: #22303f; }
+    .submenu li a { padding-left: 40px; }
+    .right-section { display: flex; flex-direction: column; width: 100%; }
+    .top-bar { height: 60px; background-color: #fff; display: flex; align-items: center; justify-content: flex-end; padding: 0 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); z-index: 10; gap: 10px; }
+    .top-bar .btn { padding: 8px 15px; border-radius: 5px; text-decoration: none; color: white; margin-left: 10px; font-weight: 500; }
+    .top-bar .btn-sale { background-color: #007bff; }
+    .top-bar .btn-purchase { background-color: #28a745; }
+    .main-content { padding: 20px; flex-grow: 1; overflow-y: auto; }
+    .main-content iframe { width: 100%; height: 100%; border: none; }
+    /* logout button */
+    .btn-logout { background:#dc3545; color:#fff; padding:8px 15px; border-radius:5px; border:none; font-weight:500; cursor:pointer; }
+    .btn-logout:hover { background:#b02a37; }
+  </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>Main Menu</h2>
-        <ul>
-            <li><a href="dashboard.html" target="content-frame">Dashboard</a></li>
-            <li class="has-submenu">
-                <span>Sale</span>
-                <ul class="submenu">
-                    <li><a href="sale.html" target="content-frame">Sale Invoices</a></li>
-                    <li><a href="estimate.html" target="content-frame">Estimate/Quotation</a></li>
-                    <li><a href="delivery_challan.html" target="content-frame">Delivery Challan</a></li>
-                    <li><a href="credit_note.html" target="content-frame">Credit Note</a></li>
-                </ul>
-            </li>
-            <li><a href="purchase.html" target="content-frame">Purchase</a></li>
-            <li><a href="cash_bank.html" target="content-frame">Cash & Bank</a></li>
-            <hr style="border-color: #34495e;">
-            <li><a href="items.html" target="content-frame">Items</a></li>
-            <li><a href="parties.html" target="content-frame">Parties</a></li>
-            <hr style="border-color: #34495e;">
-            <li><a href="reports.html" target="content-frame">Reports</a></li>
-            <li><a href="settings.html" target="content-frame">Settings</a></li>
+  <div class="sidebar">
+    <h2>Main Menu</h2>
+    <ul>
+      <li><a href="dashboard.html" target="content-frame">Dashboard</a></li>
+      <li class="has-submenu">
+        <span>Sale</span>
+        <ul class="submenu">
+          <li><a href="sale.html" target="content-frame">Sale Invoices</a></li>
+          <li><a href="estimate.html" target="content-frame">Estimate/Quotation</a></li>
+          <li><a href="delivery_challan.html" target="content-frame">Delivery Challan</a></li>
+          <li><a href="credit_note.html" target="content-frame">Credit Note</a></li>
         </ul>
+      </li>
+      <li><a href="purchase.html" target="content-frame">Purchase</a></li>
+      <li><a href="cash_bank.html" target="content-frame">Cash & Bank</a></li>
+      <hr style="border-color: #34495e;">
+      <li><a href="items.html" target="content-frame">Items</a></li>
+      <li><a href="parties.html" target="content-frame">Parties</a></li>
+      <hr style="border-color: #34495e;">
+      <li><a href="reports.html" target="content-frame">Reports</a></li>
+      <li><a href="settings.html" target="content-frame">Settings</a></li>
+    </ul>
+  </div>
+
+  <div class="right-section">
+    <div class="top-bar">
+      <a href="create_purchase.html" target="content-frame" class="btn btn-purchase">+ Add Purchase</a>
+      <a href="create_sale.html" target="content-frame" class="btn btn-sale">+ Add Sale</a>
+      <button class="btn-logout" onclick="sessionStorage.removeItem('auth'); location.href='login.html'">Logout</button>
     </div>
-    <div class="right-section">
-        <div class="top-bar">
-            <a href="create_purchase.html" target="content-frame" class="btn btn-purchase">+ Add Purchase</a>
-            <a href="create_sale.html" target="content-frame" class="btn btn-sale">+ Add Sale</a>
-        </div>
-        <div class="main-content">
-            <iframe name="content-frame" id="content-frame" src="dashboard.html"></iframe>
-        </div>
+    <div class="main-content">
+      <iframe name="content-frame" id="content-frame" src="dashboard.html"></iframe>
     </div>
-    
-<script>
+  </div>
+
+  <script>
     const menuItems = document.querySelectorAll('.sidebar ul li');
     const submenuToggles = document.querySelectorAll('.has-submenu > span');
     const allLinks = document.querySelectorAll('.sidebar ul a');
 
-    // Logic to open/close submenus
+    // submenu toggle
     submenuToggles.forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            const parentLi = toggle.parentElement;
-            parentLi.classList.toggle('open');
-            const submenu = parentLi.querySelector('.submenu');
-            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-        });
+      toggle.addEventListener('click', () => {
+        const parentLi = toggle.parentElement;
+        parentLi.classList.toggle('open');
+        const submenu = parentLi.querySelector('.submenu');
+        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+      });
     });
 
-    // CORRECTED logic to handle active state for ALL links
+    // active state
     allLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            // Remove active class from all li elements first
-            menuItems.forEach(item => item.classList.remove('active'));
-
-            // Add active class to the parent li of the clicked link
-            const parentLi = e.currentTarget.closest('li');
-            parentLi.classList.add('active');
-
-            // If the link is inside a submenu, also add active class to the main menu item
-            const mainMenuItem = e.currentTarget.closest('.has-submenu');
-            if (mainMenuItem) {
-                mainMenuItem.classList.add('active');
-            }
-        });
+      link.addEventListener('click', (e) => {
+        menuItems.forEach(item => item.classList.remove('active'));
+        const parentLi = e.currentTarget.closest('li');
+        parentLi.classList.add('active');
+        const mainMenuItem = e.currentTarget.closest('.has-submenu');
+        if (mainMenuItem) {
+          mainMenuItem.classList.add('active');
+        }
+      });
     });
 
-    // Set initial active state for the dashboard
-    document.querySelector('a[href="dashboard.html"]').closest('li').classList.add('active');
-
-</script>
+    // initial active
+    const dashboardLink = document.querySelector('a[href="dashboard.html"]');
+    if (dashboardLink) dashboardLink.closest('li').classList.add('active');
+  </script>
 </body>
 </html>
