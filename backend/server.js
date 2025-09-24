@@ -1,4 +1,4 @@
-// backend/server.js (અંતિમ અને સાચો કોડ)
+// backend/server.js (Item Code અને Wholesale વગરનો અંતિમ કોડ)
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -19,19 +19,19 @@ mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 5000 })
     .then(() => console.log('>>> MongoDB Connected successfully!'))
     .catch(err => console.error('!!! MongoDB Connection Error:', err));
 
-// --- આ સાચો અને સંપૂર્ણ સ્કીમા છે ---
+// --- Mongoose Schema (Item Code અને Wholesale વગર) ---
 const itemSchema = new mongoose.Schema({
     itemType: { type: String, required: true, default: 'Product' },
     name: { type: String, required: [true, 'Item Name is required.'], trim: true, unique: true },
     hsnCode: String,
-    itemCode: String,
+    // itemCode: String,  <-- કાઢી નાખ્યું
     unit: String,
     category: String,
     description: String,
     itemImage: String,
     pricing: {
         sale: { price: { type: Number, default: 0 }, taxType: { type: String, default: 'Without Tax' } },
-        wholesale: { price: { type: Number, default: 0 }, taxType: { type: String, default: 'Without Tax' }, minQuantity: { type: Number, default: 1 } },
+        // wholesale: { ... }, <-- કાઢી નાખ્યું
         purchase: { price: { type: Number, default: 0 }, taxType: { type: String, default: 'Without Tax' } }
     },
     stock: {
@@ -45,6 +45,7 @@ const itemSchema = new mongoose.Schema({
 
 const Item = mongoose.model('Item', itemSchema);
 
+// --- API Endpoints (કોઈ ફેરફાર નથી) ---
 app.post('/api/items', async (req, res) => {
     try {
         const newItem = new Item(req.body);
@@ -73,24 +74,46 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
+app.get('/api/items/:id', async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+        if (!item) return res.status(404).json({ message: 'Item not found' });
+        res.json(item);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching item' });
+    }
+});
+
+app.put('/api/items/:id', async (req, res) => {
+    try {
+        const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!updatedItem) return res.status(404).json({ message: 'Item not found' });
+        res.json(updatedItem);
+    } catch (error) {
+        let errorMessage = 'An error occurred.';
+        if (error.code === 11000) errorMessage = `An item with this name already exists.`;
+        else errorMessage = error.message;
+        res.status(400).json({ message: 'Error updating item', details: errorMessage });
+    }
+});
+
 app.delete('/api/items/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const deletedItem = await Item.findByIdAndDelete(id);
-        if (!deletedItem) {
-            return res.status(404).json({ message: 'Item not found.' });
-        }
+        if (!deletedItem) return res.status(404).json({ message: 'Item not found.' });
         res.json({ message: 'Item deleted successfully.' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting item' });
     }
 });
 
+// Fallback route
 app.get('*', (req, res) => {
     const filePath = path.join(frontendPath, req.path);
     res.sendFile(filePath, (err) => {
         if (err) {
-            res.status(404).send('File not found');
+            res.status(404).sendFile(path.join(frontendPath, 'items.html'));
         }
     });
 });
