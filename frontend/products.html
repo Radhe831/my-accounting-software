@@ -2,154 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Products Section</title>
-    <style>
-        body { font-family: system-ui, sans-serif; background: #f8f9fa; margin: 0; }
-        .container { max-width: 1370px; margin: 35px auto; background: #fff; border-radius: 14px; box-shadow: 0 6px 36px #0002; padding: 32px; }
-        .main-flex { display: flex; gap: 0; }
-        /* Sidebar list style */
-        .sidebar {
-            width: 320px; border-right: 1.2px solid #e0e9f0;
-            background: #fafdff;
-            padding: 0; min-height: 490px;
-            display:flex; flex-direction:column;
-        }
-        .sidebar-head {
-            display: flex; align-items: center; gap: 9px;
-            padding: 10px 20px 8px 26px;
-        }
-        .add-btn {
-            background: #fea500;
-            color: #fff; border: none;
-            border-radius: 5px; font-size: 16px;
-            padding: 7px 20px; font-weight: 600; cursor:pointer; transition: filter 0.2s;
-        }
-        .add-btn:hover { filter: brightness(93%);}
-        .sidebar-head input {
-            flex:1;
-            background: #f2f3f7;
-            border: 1px solid #dde3ed;
-            padding: 8px 12px; border-radius: 5px;
-        }
-        .productlist { list-style:none; margin:0 0 0 0; padding: 0; flex:1 1 auto; overflow-y:auto;}
-        .productlist li {
-            cursor:pointer; padding: 11px 16px;
-            border-radius: 7px; margin:2px 9px;
-        }
-        .productlist li.selected, .productlist li:hover { background: #dde8fe; color:#2057b1; }
-        .main-panel { flex: 1; padding: 0 0 0 0; }
-        .prod-header {
-            display: flex; justify-content:space-between; align-items: flex-start;
-            background: #f8fbff;
-            border-bottom: 2px solid #e3e4f0;
-            padding: 15px 24px 7px 28px;
-            position: relative;
-        }
-        .prod-title { font-size: 1.1em; font-weight:700; color: #234f76;}
-        .prod-price { color: #199d30; margin-left: 14px; }
-        .prod-stock { position: absolute; right: 12px; top: 56px; font-size:15px; color: #4d5a66;}
-        .adjust-btn {
-            background: #2563eb; color: #fff;
-            border:none; border-radius:6px; font-size:15px;
-            font-weight:600; cursor:pointer; padding:8px 21px; float:right;
-        }
-        .adjust-btn:hover { background: #1749b9;}
-        .transaction-table { width:100%; border-spacing:0; margin-top:25px;}
-        .transaction-table th, .transaction-table td { padding: 8px 8px; border-bottom: 1px solid #f0f3fa;}
-        .transaction-table th { color: #2563eb; font-size:1em;}
-        tr:hover { background:#f3f7fd;}
-        /* Modal styles */
-        #adjustModal { display:none; position:fixed; z-index:2000; left:0; top:0; width:100vw; height:100vh; background:#0002;}
-        #adjustModal .modal-content { background:#fff;border-radius:10px;max-width:350px;margin:12% auto;padding:28px 25px;box-shadow:0 6px 24px #0003;}
-        #adjustModal label { font-size: 1em; margin:0 0 14px 0; display:block;}
-        #adjustModal input { margin-left:8px;padding:6px;width:128px;}
-        .modal-btns {margin-top:22px;text-align:right;}
-        .modal-btns button {padding:7px 15px;font-size:15px;border-radius:4px; border:none;}
-        .modal-btns .save-btn {background:#2563eb;color:#fff;margin-left:7px;}
-        .modal-btns .cancel-btn {background:#ededed;color:#333;}
-    </style>
+    <title>Products</title>
 </head>
 <body>
-    <div class="container">
-        <div class="main-flex">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="sidebar-head">
-                    <button onclick="addProduct()" class="add-btn">+ Add Item</button>
-                    <input placeholder="Search items...">
-                </div>
-                <ul class="productlist" id="productList">
-                    <li class="selected">005 BK INK</li>
-                    <li>05 AMP CP PLUS</li>
-                    <li>COMP TONER CARTRIDGE</li>
-                    <li>…</li>
-                </ul>
-            </div>
-            <!-- Main detail panel -->
-            <div class="main-panel">
-                <div class="prod-header">
-                    <div>
-                        <div class="prod-title">005 BK INK <span class="prod-price">&#8377;0.00</span></div>
-                        <div style="margin: 4px 0 0 1px;font-size:14px;color:#3fa97e;font-weight:500;">SALE PRICE: &#8377;0.00 | PURCHASE PRICE: <span style="color:#588a2f;">&#8377;525.42</span></div>
-                    </div>
-                    <button class="adjust-btn" onclick="showAdjustModal()">ADJUST ITEM</button>
-                    <div class="prod-stock">STOCK QTY: <b>1</b></div>
-                </div>
-                <div style="padding:28px;">
-                    <table class="transaction-table">
-                        <tr>
-                            <th>TYPE</th><th>INV/REF</th><th>NAME</th><th>DATE</th><th>QTY</th><th>PRICE/UNIT</th><th>STATUS</th>
-                        </tr>
-                        <tr>
-                            <td>Sale</td><td>G/M-246</td><td>Cash Sale</td><td>24/07/2025</td><td>1</td><td>&#8377;750.00</td><td>Paid</td>
-                        </tr>
-                        <tr>
-                            <td>Sale</td><td>1863</td><td>Cash Sale</td><td>08/05/2025</td><td>1</td><td>&#8377;830.00</td><td>Paid</td>
-                        </tr>
-                        <tr>
-                            <td>Opening</td><td>-</td><td>Opening Stock</td><td>01/04/2025</td><td>-1</td><td>-</td><td>-</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Adjust Item Modal -->
-    <div id="adjustModal">
-        <div class="modal-content">
-            <h3>Adjust Item</h3>
-            <label>Quantity: <input type="number" id="adjQty" value="1"></label>
-            <label>Price: <input type="number" id="adjPrice" value="525.42"></label>
-            <div class="modal-btns">
-                <button class="cancel-btn" onclick="closeAdjustModal()">Cancel</button>
-                <button class="save-btn" onclick="saveAdjust()">Save</button>
-            </div>
-        </div>
-    </div>
+    <h1>Product List</h1>
+    <ul id="productList"></ul>
+    <a href="/create_item.html">Add New Product</a>
+
     <script>
-        // Sidebar click highlight logic
-        document.querySelectorAll('#productList li').forEach(li => {
-            li.onclick = function() {
-                document.querySelectorAll('#productList li').forEach(x => x.classList.remove('selected'));
-                this.classList.add('selected');
-                // Here you can change right detail panel depending on product clicked
+        document.addEventListener('DOMContentLoaded', () => {
+            const productList = document.getElementById('productList');
+
+            async function fetchProducts() {
+                try {
+                    const response = await fetch('/api/items');
+                    const items = await response.json();
+                    productList.innerHTML = '';
+                    items.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>${item.name}</strong> - Price: ${item.pricing.sale.price}`;
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.style.marginLeft = '10px';
+                        deleteButton.onclick = () => deleteItem(item._id, item.name);
+                        li.appendChild(deleteButton);
+                        productList.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error('Error fetching products:', error);
+                }
             }
+
+            async function deleteItem(itemId, itemName) {
+                if (!confirm(`Are you sure you want to delete "${itemName}"?`)) {
+                    return;
+                }
+                try {
+                    const response = await fetch(`/api/items/${itemId}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        alert('Item deleted successfully!');
+                        fetchProducts();
+                    } else {
+                        alert('Failed to delete item.');
+                    }
+                } catch (error) {
+                    console.error('Error deleting item:', error);
+                }
+            }
+            fetchProducts();
         });
-        function addProduct() {
-            // Open add item form/page
-            window.location.href = "create_item.html"; // replace if your add-item-page is different
-        }
-        // Adjust modal logic
-        function showAdjustModal() {
-            document.getElementById('adjustModal').style.display = 'block';
-        }
-        function closeAdjustModal() {
-            document.getElementById('adjustModal').style.display = 'none';
-        }
-        function saveAdjust() {
-            alert('Adjustment saved! (Demo only)');
-            closeAdjustModal();
-        }
     </script>
 </body>
 </html>
