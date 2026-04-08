@@ -4,8 +4,10 @@
   "description": "Backend for Vyapar Project",
   "main": "server.js",
   "scripts": {
-"start": "nodemon server.js"  },
+    "start": "nodemon server.js"
+  },
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^4.19.2",
