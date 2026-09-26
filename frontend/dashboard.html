@@ -6,109 +6,193 @@
   <title>Dashboard</title>
   <style>
     :root {
-      --bg: #edf3fa;
+      --navy: #1c2433;
+      --navy-2: #202b39;
+      --navy-3: #2b3444;
+      --page-bg: #f3f6fb;
       --panel: #ffffff;
-      --panel-alt: #f5f8ff;
-      --line: #e4ebf5;
-      --ink: #202f45;
-      --muted: #6d7d93;
-      --primary: #3d7cff;
-      --primary-2: #7a5cff;
-      --green: #1ebd74;
+      --muted: #7f8da6;
+      --text: #1f2a37;
+      --line: #e6ebf2;
+      --green: #2bbf77;
       --green-soft: #eafaf1;
       --red: #ef5d5d;
-      --red-soft: #ffefef;
-      --shadow: 0 14px 32px rgba(29, 43, 68, 0.08);
-      --radius: 18px;
+      --red-soft: #ffeaea;
+      --blue: #4a7df7;
+      --blue-soft: #edf4ff;
+      --shadow: 0 12px 28px rgba(34, 47, 63, 0.07);
     }
 
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
       margin: 0;
-      background: linear-gradient(180deg, #eef4fb, #f8fbff 25%, #f3f6fb 100%);
-      color: var(--ink);
+      height: 100%;
+      background: var(--page-bg);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    .dashboard-shell {
-      padding: 24px 22px 18px;
-    }
-
-    .topbar {
+    body {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255,255,255,0.8);
-      border: 1px solid rgba(228,235,245,0.9);
-      backdrop-filter: blur(8px);
-      box-shadow: var(--shadow);
-      border-radius: 18px;
-      padding: 12px 18px;
-      margin-bottom: 16px;
+      min-height: 100vh;
     }
 
-    .brand {
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(180deg, #171f2a, #1d2a38);
+      color: #e8edf6;
+      padding: 16px 12px 18px;
+      box-shadow: inset -1px 0 0 rgba(255,255,255,0.04);
+    }
+
+    .sidebar .brand {
       display: flex;
       align-items: center;
       gap: 10px;
+      padding: 8px 10px 18px;
       font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 12px;
-      color: var(--muted);
+      font-size: 13px;
+      color: #eef3ff;
     }
 
-    .brand-dot {
-      width: 11px;
-      height: 11px;
+    .sidebar .brand-dot {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #4ea3ff, #8163ff);
-      box-shadow: 0 0 0 4px rgba(77, 132, 255, 0.12);
+      background: linear-gradient(135deg, #5ec9ff, #7a5ef4);
+    }
+
+    .nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav li {
+      margin: 2px 0;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #dfe8f5;
+      font-size: 15px;
+      opacity: 0.95;
+    }
+
+    .nav a:hover, .nav a.active {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .nav .icon {
+      width: 14px;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    .sidebar .bottom-cta {
+      margin-top: 32px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #f1f5ff;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 62px;
+      background: rgba(255,255,255,0.7);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 0 18px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      backdrop-filter: blur(8px);
+    }
+
+    .search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-right: 18px;
+    }
+
+    .search-box {
+      width: min(560px, 100%);
+      background: rgba(255,255,255,0.5);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 14px;
+      color: var(--muted);
+      font-size: 13px;
     }
 
     .top-actions {
       display: flex;
+      align-items: center;
       gap: 10px;
+      flex-shrink: 0;
     }
 
-    .pill {
+    .btn {
       border: none;
+      border-radius: 10px;
       padding: 10px 16px;
-      border-radius: 12px;
-      color: white;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 10px 18px rgba(77, 119, 255, 0.18);
+      color: #fff;
+      box-shadow: 0 10px 18px rgba(55, 102, 235, 0.18);
     }
 
-    .pill.sale {
-      background: linear-gradient(135deg, #ff6d68, #ef4a5d);
+    .btn.red { background: linear-gradient(135deg, #ff6a67, #f0505f); }
+    .btn.blue { background: linear-gradient(135deg, #5aa6ff, #3f7df6); }
+
+    .content {
+      padding: 18px 20px 24px;
+      flex: 1;
     }
 
-    .pill.purchase {
-      background: linear-gradient(135deg, #57b3ff, #3d7cff);
-    }
-
-    .dashboard-grid {
+    .main-grid {
       display: grid;
-      grid-template-columns: minmax(0, 2.2fr) minmax(290px, 0.8fr);
+      grid-template-columns: minmax(0, 2.5fr) minmax(280px, 0.9fr);
       gap: 18px;
       align-items: start;
     }
 
-    .left-panel {
+    .cards-row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
+      gap: 16px;
+      margin-bottom: 16px;
     }
 
     .metric-card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 18px 18px 16px;
+      border-radius: 14px;
+      padding: 20px 16px 14px;
       box-shadow: var(--shadow);
     }
 
@@ -117,83 +201,77 @@
       justify-content: space-between;
       align-items: center;
       color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
+      font-size: 15px;
+      margin-bottom: 12px;
     }
 
-    .metric-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
+    .metric-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 18px;
     }
 
-    .metric-icon.green { background: var(--green-soft); color: var(--green); }
-    .metric-icon.red { background: var(--red-soft); color: var(--red); }
+    .metric-badge.green { background: var(--green-soft); color: var(--green); }
+    .metric-badge.red { background: var(--red-soft); color: var(--red); }
 
     .metric-value {
-      font-size: clamp(26px, 2.1vw, 34px);
-      font-weight: 800;
-      letter-spacing: -0.05em;
-      margin-bottom: 4px;
-    }
-
-    .metric-sub {
-      color: var(--muted);
-      font-size: 12px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
     }
 
     .green { color: var(--green); }
     .red { color: var(--red); }
 
-    .metric-card.wide {
-      grid-column: 1 / -1;
-      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+    .metric-sub {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 12px;
     }
 
-    .chart-shell {
+    .wide-card {
+      grid-column: 1 / -1;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 14px;
       box-shadow: var(--shadow);
-      padding: 14px 16px 12px;
-      grid-column: 1 / -1;
+      padding: 16px 18px 14px;
     }
 
-    .chart-top {
+    .wide-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 8px;
     }
 
-    .chart-badge {
-      background: var(--panel-alt);
-      border: 1px solid var(--line);
+    .pill-tag {
+      background: #f3f7ff;
+      color: #536996;
+      border: 1px solid #e4ebfb;
       border-radius: 999px;
       padding: 6px 10px;
       font-size: 11px;
-      color: var(--ink);
       font-weight: 700;
     }
 
-    .chart-box {
+    .chart-wrap {
       position: relative;
       height: 260px;
-      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(91,125,247,0.02), rgba(255,255,255,0));
+      border: 1px solid #edf1f7;
+      border-radius: 12px;
       overflow: hidden;
-      border: 1px solid rgba(134, 153, 181, 0.25);
-      background: linear-gradient(180deg, rgba(87, 119, 255, 0.03), rgba(255,255,255,0));
     }
 
-    .chart-box svg {
+    .chart-wrap svg {
       width: 100%;
       height: 100%;
       display: block;
@@ -201,107 +279,92 @@
 
     .chart-tag {
       position: absolute;
-      left: 52%;
-      top: 46%;
+      left: 57%;
+      top: 42%;
       transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #32d08a, #17b96d);
-      color: white;
-      font-weight: 700;
-      font-size: 12px;
+      background: linear-gradient(135deg, #32d18a, #2bbf77);
+      color: #fff;
       border-radius: 999px;
       padding: 7px 12px;
-      box-shadow: 0 14px 24px rgba(25, 196, 124, 0.22);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 12px 24px rgba(43,191,119,0.26);
     }
 
     .report-row {
-      grid-column: 1 / -1;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .report-box {
+    .report-link {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: rgba(255,255,255,0.75);
+      justify-content: space-between;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 16px 14px;
+      background: var(--panel);
+      border-radius: 10px;
+      padding: 14px 12px;
       text-decoration: none;
-      color: var(--ink);
-      box-shadow: 0 10px 20px rgba(17, 24, 39, 0.03);
-      font-weight: 700;
+      color: var(--text);
+      box-shadow: 0 8px 16px rgba(31,42,55,0.03);
       font-size: 13px;
+      font-weight: 600;
     }
 
-    .report-box span:last-child {
+    .report-link span:last-child {
       color: var(--muted);
-      font-size: 21px;
+      font-size: 20px;
     }
 
-    .right-panel {
+    .side-stack {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
     }
 
     .side-card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 14px;
       box-shadow: var(--shadow);
-      padding: 14px 14px 8px;
+      padding: 14px;
     }
 
-    .side-block {
+    .side-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .side-list li {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 0;
+      padding: 10px 0;
       border-bottom: 1px solid var(--line);
       font-size: 14px;
+      color: var(--text);
     }
 
-    .side-block:last-child { border-bottom: none; }
+    .side-list li:last-child { border-bottom: none; }
 
-    .side-block .label { color: var(--muted); }
-    .side-block .value { font-weight: 800; }
+    .side-list .neg { color: var(--red); font-weight: 700; }
 
-    .side-header {
+    .side-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding-bottom: 8px;
+      margin-bottom: 2px;
       border-bottom: 1px solid var(--line);
-      margin-bottom: 4px;
+      font-weight: 700;
+      font-size: 14px;
     }
 
-    .low-stock {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .low-stock li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 9px 0;
-      border-bottom: 1px solid var(--line);
-      font-size: 12px;
-      color: var(--ink);
-    }
-
-    .low-stock li:last-child { border-bottom: none; }
-
-    .low-stock .count {
-      color: var(--red);
-      font-weight: 800;
-    }
-
-    .wa {
-      background: linear-gradient(180deg, #f6faff, #edf4ff);
+    .wa-card {
+      background: linear-gradient(180deg, #f7faff, #edf4ff);
       border: 1px solid #dfeaff;
     }
 
@@ -314,13 +377,13 @@
       font-size: 13px;
     }
 
-    .status {
-      background: #eafaf1;
-      color: #198d5f;
-      border-radius: 999px;
-      padding: 4px 8px;
+    .wa-status {
       font-size: 10px;
-      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eafaf0;
+      color: #19915a;
+      font-weight: 700;
     }
 
     .wa-note {
@@ -333,172 +396,203 @@
       width: 100%;
       background: #edf4ff;
       border: 1px solid #cfe0ff;
-      color: #3464db;
-      border-radius: 12px;
-      padding: 11px 14px;
-      font-weight: 800;
+      color: #3564d9;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
     }
 
-    .profile-row {
+    .profile-box {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-top: 8px;
-      padding-top: 10px;
-      border-top: 1px solid var(--line);
+      padding-top: 8px;
     }
 
     .avatar {
       width: 34px;
       height: 34px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #c8f1d0, #6fcf8e);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
       font-weight: 800;
-      font-size: 13px;
+      background: linear-gradient(135deg, #9ee1ae, #65c178);
     }
 
-    .profile-row strong {
-      font-size: 13px;
+    .profile-box strong {
       display: block;
+      font-size: 13px;
     }
 
-    .profile-row p {
+    .profile-box p {
+      margin: 4px 0 0;
       font-size: 11px;
       color: var(--muted);
-      margin: 3px 0 0;
     }
 
-    @media (max-width: 980px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
-      .left-panel { grid-template-columns: 1fr; }
+    @media (max-width: 1100px) {
+      .sidebar { width: 180px; }
+      .main-grid { grid-template-columns: 1fr; }
       .report-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; }
+      .cards-row { grid-template-columns: 1fr; }
+      .topbar { flex-wrap: wrap; height: auto; padding: 12px 16px; }
+      .top-actions { width: 100%; justify-content: flex-end; }
+      .search { width: 100%; padding-right: 0; }
+      .search-box { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="dashboard-shell">
-    <div class="topbar">
-      <div class="brand">
-        <span class="brand-dot"></span>
-        <span>Dashboard</span>
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Dashboard</span>
+    </div>
+
+    <ul class="nav">
+      <li><a href="#" class="active"><span class="icon">⌂</span>Home</a></li>
+      <li><a href="#"><span class="icon">◌</span>Parties</a></li>
+      <li><a href="#"><span class="icon">▣</span>Items</a></li>
+      <li><a href="#"><span class="icon">◫</span>Sale</a></li>
+      <li><a href="#"><span class="icon">◍</span>Purchase</a></li>
+      <li><a href="#"><span class="icon">◐</span>Reports</a></li>
+      <li><a href="#"><span class="icon">⚙</span>Settings</a></li>
+    </ul>
+
+    <div class="bottom-cta">⚡ Printer Solutions</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="search">
+        <div class="search-box">Search Transactions</div>
       </div>
       <div class="top-actions">
-        <button class="pill sale">+ Add Sale</button>
-        <button class="pill purchase">+ Add Purchase</button>
+        <button class="btn red">+ Add Sale</button>
+        <button class="btn blue">+ Add Purchase</button>
       </div>
-    </div>
+    </header>
 
-    <div class="dashboard-grid">
-      <div class="left-panel">
-        <div class="metric-card">
-          <div class="metric-head">
-            <span>Total Receivable</span>
-            <span class="metric-icon green">↓</span>
-          </div>
-          <div class="metric-value green">₹ 7,70,844</div>
-          <div class="metric-sub">From 10 Parties</div>
-        </div>
+    <div class="content">
+      <div class="main-grid">
+        <div>
+          <div class="cards-row">
+            <div class="metric-card">
+              <div class="metric-head">
+                <span>Total Receivable</span>
+                <span class="metric-badge green">↓</span>
+              </div>
+              <div class="metric-value green">₹ 7,70,844</div>
+              <div class="metric-sub">From 10 Parties</div>
+            </div>
 
-        <div class="metric-card">
-          <div class="metric-head">
-            <span>Total Payable</span>
-            <span class="metric-icon red">↑</span>
-          </div>
-          <div class="metric-value red">₹ 7,49,001</div>
-          <div class="metric-sub">From 18 Parties</div>
-        </div>
-
-        <div class="metric-card wide">
-          <div class="metric-head">
-            <span>Total Sale</span>
-            <span class="chart-badge">This Month</span>
-          </div>
-          <div class="metric-value">₹ 7,23,047</div>
-          <div class="metric-sub">124% more than last month</div>
-        </div>
-
-        <div class="chart-shell">
-          <div class="chart-top">
-            <span>Sales Trend</span>
-            <span class="chart-badge">This Month</span>
-          </div>
-
-          <div class="chart-box">
-            <svg viewBox="0 0 820 260" preserveAspectRatio="none" aria-label="sales chart">
-              <defs>
-                <linearGradient id="fillGlow" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#678eff" stop-opacity="0.26"/>
-                  <stop offset="100%" stop-color="#678eff" stop-opacity="0.03"/>
-                </linearGradient>
-              </defs>
-              <g opacity="0.35" stroke="#dfe7f5" stroke-width="1">
-                <line x1="0" y1="40" x2="820" y2="40"/>
-                <line x1="0" y1="90" x2="820" y2="90"/>
-                <line x1="0" y1="140" x2="820" y2="140"/>
-                <line x1="0" y1="190" x2="820" y2="190"/>
-                <line x1="0" y1="240" x2="820" y2="240"/>
-              </g>
-              <path d="M0,205 C30,175 50,180 80,125 S150,78 180,108 S260,205 300,122 S370,50 420,130 S490,188 540,116 S610,62 650,105 S720,162 820,105 L820,260 L0,260 Z" fill="url(#fillGlow)"/>
-              <path d="M0,205 C30,175 50,180 80,125 S150,78 180,108 S260,205 300,122 S370,50 420,130 S490,188 540,116 S610,62 650,105 S720,162 820,105" fill="none" stroke="#4d7cff" stroke-width="3" stroke-linecap="round"/>
-            </svg>
-            <div class="chart-tag">₹ 31,830</div>
-          </div>
-        </div>
-
-        <div class="report-row">
-          <a class="report-box" href="reports.html"><span>Sale Report</span><span>›</span></a>
-          <a class="report-box" href="reports.html"><span>All Transactions</span><span>›</span></a>
-          <a class="report-box" href="reports.html"><span>Daybook Report</span><span>›</span></a>
-          <a class="report-box" href="reports.html"><span>Party Statement</span><span>›</span></a>
-        </div>
-      </div>
-
-      <div class="right-panel">
-        <div class="side-card">
-          <div class="side-block"><span class="label">Expenses</span><span class="value">₹ 0</span></div>
-          <div class="side-block"><span class="label">Purchases</span><span class="value">₹ 3,84,347</span></div>
-          <div class="side-block"><span class="label">Stock Value</span><span class="value">₹ 14,94,139</span></div>
-          <div class="side-block"><span class="label">Cash in Hand</span><span class="value red">₹ -2,59,824</span></div>
-          <div class="side-block"><span class="label">Total Bank Balance</span><span class="value red">₹ -7,21,798</span></div>
-        </div>
-
-        <div class="side-card">
-          <div class="side-header">
-            <strong>Low Stock Items</strong>
-            <span class="chart-badge">As of now</span>
-          </div>
-          <ul class="low-stock">
-            <li><span>1 MODUL SURFACE BOARD</span><span class="count">-4</span></li>
-            <li><span>1.5MM SINGLE CORE</span><span class="count">-2</span></li>
-            <li><span>14700 IF PROSSOR</span><span class="count">0</span></li>
-          </ul>
-        </div>
-
-        <div class="side-card wa">
-          <div class="wa-head">
-            <span>💬 WhatsApp Connect</span>
-            <span class="status">Logged out</span>
-          </div>
-          <p class="wa-note">WhatsApp reduces your calls by 70%</p>
-          <button class="wa-btn">Connect WhatsApp</button>
-        </div>
-
-        <div class="side-card">
-          <div class="profile-row">
-            <div class="avatar">G</div>
-            <div>
-              <strong>Google Profile Manager</strong>
-              <p>Your Google profile was a free marketing tool</p>
+            <div class="metric-card">
+              <div class="metric-head">
+                <span>Total Payable</span>
+                <span class="metric-badge red">↑</span>
+              </div>
+              <div class="metric-value red">₹ 7,49,001</div>
+              <div class="metric-sub">From 18 Parties</div>
             </div>
           </div>
+
+          <div class="wide-card">
+            <div class="wide-row">
+              <span>Total Sale</span>
+              <span class="pill-tag">This Month</span>
+            </div>
+            <div class="metric-value">₹ 7,23,047</div>
+            <div class="metric-sub">124% more than last month</div>
+          </div>
+
+          <div class="wide-card" style="margin-top:16px;">
+            <div class="wide-row">
+              <span>Sales trend</span>
+              <span class="pill-tag">This Month</span>
+            </div>
+            <div class="chart-wrap">
+              <svg viewBox="0 0 820 260" preserveAspectRatio="none" aria-label="sales chart">
+                <defs>
+                  <linearGradient id="fillBlue" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#5d8bff" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#5d8bff" stop-opacity="0.02"/>
+                  </linearGradient>
+                </defs>
+                <g opacity="0.34" stroke="#dfebf8" stroke-width="1">
+                  <line x1="0" y1="40" x2="820" y2="40"/>
+                  <line x1="0" y1="90" x2="820" y2="90"/>
+                  <line x1="0" y1="140" x2="820" y2="140"/>
+                  <line x1="0" y1="190" x2="820" y2="190"/>
+                  <line x1="0" y1="240" x2="820" y2="240"/>
+                </g>
+                <path d="M0,205 C30,175 50,180 80,125 S150,78 180,108 S260,205 300,122 S370,50 420,130 S490,188 540,116 S610,62 650,105 S720,162 820,105 L820,260 L0,260 Z" fill="url(#fillBlue)"/>
+                <path d="M0,205 C30,175 50,180 80,125 S150,78 180,108 S260,205 300,122 S370,50 420,130 S490,188 540,116 S610,62 650,105 S720,162 820,105" fill="none" stroke="#4a7df7" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+              <div class="chart-tag">₹ 31,830</div>
+            </div>
+          </div>
+
+          <div class="report-row">
+            <a class="report-link" href="#"><span>Sale Report</span><span>›</span></a>
+            <a class="report-link" href="#"><span>All Transactions</span><span>›</span></a>
+            <a class="report-link" href="#"><span>Daybook Report</span><span>›</span></a>
+            <a class="report-link" href="#"><span>Party Statement</span><span>›</span></a>
+          </div>
         </div>
+
+        <aside class="side-stack">
+          <div class="side-card">
+            <ul class="side-list">
+              <li><span>Expenses</span><span>₹ 0</span></li>
+              <li><span>Purchases</span><span>₹ 3,84,347</span></li>
+              <li><span>Stock Value</span><span>₹ 14,94,139</span></li>
+              <li><span>Cash in Hand</span><span class="neg">₹ -2,59,824</span></li>
+              <li><span>Total Bank Balance</span><span class="neg">₹ -7,21,798</span></li>
+            </ul>
+          </div>
+
+          <div class="side-card">
+            <div class="side-head">
+              <span>Low Stock Items</span>
+              <span class="pill-tag">As of Now</span>
+            </div>
+            <ul class="side-list" style="margin-top:4px;">
+              <li><span>1 MODUL SURFACE BOARD</span><span class="neg">-4</span></li>
+              <li><span>1.5MM SINGLE CORE</span><span class="neg">-2</span></li>
+              <li><span>14700 IF PROSSOR</span><span>0</span></li>
+            </ul>
+          </div>
+
+          <div class="side-card wa-card">
+            <div class="wa-head">
+              <span>💬 WhatsApp Connect</span>
+              <span class="wa-status">Logged out</span>
+            </div>
+            <p class="wa-note">WhatsApp reduces your calls by 70%</p>
+            <button class="wa-btn">Connect WhatsApp</button>
+          </div>
+
+          <div class="side-card">
+            <div class="profile-box">
+              <div class="avatar">G</div>
+              <div>
+                <strong>Google Profile Manager</strong>
+                <p>Your Google profile was a free marketing tool</p>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
-  </div>
+  </main>
 </body>
 </html>
